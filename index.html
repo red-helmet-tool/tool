@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>目標達成！タダ活・お小遣い進捗チェッカー</title>
+  <title>資金作成・進捗管理ツール</title>
+  <!-- グラフ描画用ライブラリ -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
       --bg: #f8fafc;
@@ -13,13 +15,10 @@
       --text-muted: #64748b;
       --border: #e2e8f0;
       --success: #10b981;
+      --danger: #ef4444;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -27,20 +26,12 @@
       color: var(--text);
       line-height: 1.5;
       padding: 16px;
-      max-width: 480px;
+      max-width: 500px;
       margin: 0 auto;
     }
 
-    .header {
-      text-align: center;
-      margin-bottom: 16px;
-    }
-
-    .header h1 {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--text);
-    }
+    .header { text-align: center; margin-bottom: 16px; }
+    .header h1 { font-size: 18px; font-weight: 700; }
 
     .card {
       background: var(--card-bg);
@@ -51,45 +42,27 @@
       border: 1px solid var(--border);
     }
 
-    /* カウントダウンセクション */
+    /* カウントダウン */
     .countdown-box {
       background: linear-gradient(135deg, #1e293b, #0f172a);
       color: #ffffff;
       text-align: center;
       border: none;
     }
-
-    .countdown-title {
-      font-size: 13px;
-      color: #94a3b8;
-      margin-bottom: 4px;
-    }
-
-    .countdown-days {
-      font-size: 36px;
-      font-weight: 800;
-      color: #38bdf8;
-      line-height: 1.2;
-    }
-
-    .countdown-days span {
-      font-size: 16px;
-      font-weight: 400;
-      color: #ffffff;
-      margin-left: 4px;
-    }
-
-    .date-picker-group {
+    .countdown-title { font-size: 13px; color: #94a3b8; margin-bottom: 4px; }
+    .countdown-days { font-size: 36px; font-weight: 800; color: #38bdf8; line-height: 1.2; }
+    .countdown-days span { font-size: 16px; font-weight: 400; color: #ffffff; margin-left: 4px; }
+    
+    .setting-row {
       margin-top: 12px;
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: space-between;
       gap: 8px;
       font-size: 13px;
       color: #cbd5e1;
     }
-
-    .date-picker-group input[type="date"] {
+    .setting-row input {
       background: #334155;
       border: 1px solid #475569;
       color: #ffffff;
@@ -99,22 +72,10 @@
     }
 
     /* 進捗サマリー */
-    .amount-display {
-      text-align: center;
-      margin-bottom: 16px;
-    }
-
-    .amount-label {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-
-    .amount-value {
-      font-size: 32px;
-      font-weight: 800;
-      color: var(--primary);
-    }
-
+    .amount-display { text-align: center; margin-bottom: 16px; }
+    .amount-label { font-size: 12px; color: var(--text-muted); }
+    .amount-value { font-size: 32px; font-weight: 800; color: var(--primary); }
+    
     .progress-bar-bg {
       background: var(--border);
       height: 12px;
@@ -122,14 +83,12 @@
       overflow: hidden;
       margin-bottom: 8px;
     }
-
     .progress-bar-fill {
       background: linear-gradient(90deg, var(--primary), #3b82f6);
       height: 100%;
       width: 0%;
       transition: width 0.4s ease;
     }
-
     .progress-info {
       display: flex;
       justify-content: space-between;
@@ -146,7 +105,6 @@
       align-items: center;
       font-size: 13px;
     }
-
     .target-setting input {
       width: 110px;
       padding: 6px 8px;
@@ -157,87 +115,81 @@
       font-weight: 600;
     }
 
-    /* タスクリスト */
+    /* カスタムタスク */
     .section-title {
       font-size: 14px;
       font-weight: 700;
       margin-bottom: 12px;
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 6px;
     }
-
-    .task-list {
-      list-style: none;
+    .btn-add {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
     }
 
     .task-item {
       display: flex;
       align-items: center;
-      padding: 12px 0;
+      gap: 8px;
+      padding: 10px 0;
       border-bottom: 1px solid var(--border);
     }
+    .task-checkbox { width: 20px; height: 20px; accent-color: var(--primary); }
+    .task-name-input { flex: 1; padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; }
+    .task-val-input { width: 80px; padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; text-align: right; }
+    .btn-del { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px; }
 
-    .task-item:last-child {
-      border-bottom: none;
+    /* 月別実績エリア */
+    .monthly-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+    .monthly-row input {
+      width: 100px;
+      padding: 4px 8px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      text-align: right;
     }
 
-    .task-checkbox {
-      width: 22px;
-      height: 22px;
-      accent-color: var(--primary);
-      margin-right: 12px;
-      cursor: pointer;
-    }
-
-    .task-content {
-      flex: 1;
-    }
-
-    .task-name {
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    .task-desc {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .task-val {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--success);
-    }
-
-    .footer-note {
-      text-align: center;
-      font-size: 11px;
-      color: var(--text-muted);
-      margin-top: 16px;
-    }
+    .footer-note { text-align: center; font-size: 11px; color: var(--text-muted); margin-top: 16px; }
   </style>
 </head>
 <body>
 
   <div class="header">
-    <h1>資金作成・進捗チェッカー</h1>
+    <h1>資金作成・進捗管理ツール</h1>
   </div>
 
-  <!-- カウントダウンエリア -->
+  <!-- カウントダウン ＆ 締め日設定 -->
   <div class="card countdown-box">
-    <div class="countdown-title">🎯 目標日（予定・期日）まで</div>
+    <div class="countdown-title">🎯 目標日（期日）まで</div>
     <div class="countdown-days" id="countdownDays">--<span>日</span></div>
-    <div class="date-picker-group">
-      <label for="targetDate">目標日設定:</label>
-      <input type="date" id="targetDate" onchange="updateCountdown()">
+    
+    <div class="setting-row">
+      <label>毎月の締め日:</label>
+      <input type="number" id="cutoffDay" value="25" min="1" max="31" style="width: 60px;" onchange="initMonthlyTracker()"> 日
+    </div>
+    <div class="setting-row">
+      <label>目標日（期日）:</label>
+      <input type="date" id="targetDate" onchange="initMonthlyTracker()">
     </div>
   </div>
 
-  <!-- 進捗サマリーエリア -->
+  <!-- 進捗サマリー -->
   <div class="card">
     <div class="amount-display">
-      <div class="amount-label">現在の獲得・節約達成額</div>
+      <div class="amount-label">現在の獲得・達成総額</div>
       <div class="amount-value" id="currentAmount">¥0</div>
     </div>
     
@@ -258,141 +210,219 @@
     </div>
   </div>
 
-  <!-- タスクエリア -->
+  <!-- 自由編集タスクリスト -->
   <div class="card">
-    <div class="section-title">📌 資金作成・ポイ活タスク</div>
-    <ul class="task-list">
-      <li class="task-item">
-        <input type="checkbox" class="task-checkbox" data-val="12000" onchange="updateAll()">
-        <div class="task-content">
-          <div class="task-name">高還元カード発行</div>
-          <div class="task-desc">年会費無料でポイント即時獲得</div>
-        </div>
-        <div class="task-val">+12,000pt</div>
-      </li>
-      <li class="task-item">
-        <input type="checkbox" class="task-checkbox" data-val="8000" onchange="updateAll()">
-        <div class="task-content">
-          <div class="task-name">口座開設・アプリ連携</div>
-          <div class="task-desc">条件達成で現金・ポイント付与</div>
-        </div>
-        <div class="task-val">+8,000pt</div>
-      </li>
-      <li class="task-item">
-        <input type="checkbox" class="task-checkbox" data-val="5000" onchange="updateAll()">
-        <div class="task-content">
-          <div class="task-name">固定費・キャンペーン見直し</div>
-          <div class="task-desc">毎月のお小遣いを浮かせる</div>
-        </div>
-        <div class="task-val">+5,000円</div>
-      </li>
-      <li class="task-item">
-        <input type="checkbox" class="task-checkbox" data-val="15000" onchange="updateAll()">
-        <div class="task-content">
-          <div class="task-name">不用品整理・現金化</div>
-          <div class="task-desc">使わないものの出張・宅配買取</div>
-        </div>
-        <div class="task-val">+15,000円</div>
-      </li>
-      <li class="task-item">
-        <input type="checkbox" class="task-checkbox" data-val="10000" onchange="updateAll()">
-        <div class="task-content">
-          <div class="task-name">ポイント充当・キャッシュバック</div>
-          <div class="task-desc">貯まったポイントで実質0円化</div>
-        </div>
-        <div class="task-val">+10,000円</div>
-      </li>
-    </ul>
+    <div class="section-title">
+      <span>📌 タスク・獲得項目</span>
+      <button class="btn-add" onclick="addTask()">+ 項目追加</button>
+    </div>
+    <div id="taskList"></div>
+  </div>
+
+  <!-- 月別実績 ＆ グラフ -->
+  <div class="card">
+    <div class="section-title">📊 月別実績・推移グラフ</div>
+    <canvas id="monthlyChart" style="max-height: 200px; margin-bottom: 16px;"></canvas>
+    <div id="monthlyInputs"></div>
   </div>
 
   <div class="footer-note">
-    ※設定・チェック状態は端末内に自動保存されます。<br>
-    ブラウザの「ホーム画面に追加」でアプリ感覚で使えます。
+    ※設定・実績は端末内に自動保存されます。<br>
+    ホーム画面に追加してアプリ感覚でご活用ください。
   </div>
 
   <script>
-    function updateCountdown() {
-      const dateInput = document.getElementById('targetDate');
-      const display = document.getElementById('countdownDays');
-      
-      if (!dateInput.value) {
-        display.innerHTML = '--<span>日</span>';
-        return;
-      }
+    let chartInstance = null;
 
-      localStorage.setItem('enpro_target_date', dateInput.value);
+    // タスク初期値
+    let tasks = [
+      { name: "高還元カード発行", val: 12000, checked: false },
+      { name: "口座開設・アプリ連携", val: 8000, checked: false },
+      { name: "不用品整理・現金化", val: 15000, checked: false }
+    ];
 
-      const target = new Date(dateInput.value);
-      const today = new Date();
-      
-      target.setHours(0, 0, 0, 0);
-      today.setHours(0, 0, 0, 0);
-
-      const diffTime = target - today;
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-      if (diffDays < 0) {
-        display.innerHTML = '終了<span></span>';
-      } else if (diffDays === 0) {
-        display.innerHTML = '当日！<span></span>';
-      } else {
-        display.innerHTML = diffDays + '<span>日</span>';
-      }
-    }
-
-    function updateAll() {
-      const checkboxes = document.querySelectorAll('.task-checkbox');
-      const targetInput = document.getElementById('targetAmount');
-      
-      let currentTotal = 0;
-      let targetTotal = parseInt(targetInput.value) || 1;
-
-      checkboxes.forEach((cb, index) => {
-        if (cb.checked) {
-          currentTotal += parseInt(cb.getAttribute('data-val'));
-        }
-        localStorage.setItem('enpro_task_' + index, cb.checked);
-      });
-
-      localStorage.setItem('enpro_target_amount', targetTotal);
-
-      document.getElementById('currentAmount').innerText = '¥' + currentTotal.toLocaleString();
-      
-      let remaining = Math.max(0, targetTotal - currentTotal);
-      document.getElementById('remainingAmount').innerText = '¥' + remaining.toLocaleString();
-
-      let percentage = Math.min(Math.round((currentTotal / targetTotal) * 100), 100);
-      document.getElementById('progressFill').style.width = percentage + '%';
-      document.getElementById('progressPercent').innerText = percentage + '%';
-    }
-
+    // 初期化
     window.onload = function() {
-      const savedDate = localStorage.getItem('enpro_target_date');
+      // 日付初期設定
+      const savedDate = localStorage.getItem('cfg_target_date');
       const dateInput = document.getElementById('targetDate');
       if (savedDate) {
         dateInput.value = savedDate;
       } else {
-        const defaultDate = new Date();
-        defaultDate.setDate(defaultDate.getDate() + 30);
-        dateInput.value = defaultDate.toISOString().split('T')[0];
-      }
-      updateCountdown();
-
-      const savedAmount = localStorage.getItem('enpro_target_amount');
-      if (savedAmount) {
-        document.getElementById('targetAmount').value = savedAmount;
+        const d = new Date();
+        d.setDate(d.getDate() + 90);
+        dateInput.value = d.toISOString().split('T')[0];
       }
 
-      const checkboxes = document.querySelectorAll('.task-checkbox');
-      checkboxes.forEach((cb, index) => {
-        const savedState = localStorage.getItem('enpro_task_' + index);
-        if (savedState === 'true') {
-          cb.checked = true;
-        }
+      // 締め日復元
+      const savedCutoff = localStorage.getItem('cfg_cutoff');
+      if (savedCutoff) document.getElementById('cutoffDay').value = savedCutoff;
+
+      // 目標額復元
+      const savedAmount = localStorage.getItem('cfg_target_amount');
+      if (savedAmount) document.getElementById('targetAmount').value = savedAmount;
+
+      // タスク復元
+      const savedTasks = localStorage.getItem('cfg_tasks');
+      if (savedTasks) tasks = JSON.parse(savedTasks);
+
+      renderTasks();
+      initMonthlyTracker();
+    };
+
+    // タスク描画
+    function renderTasks() {
+      const container = document.getElementById('taskList');
+      container.innerHTML = '';
+
+      tasks.forEach((t, i) => {
+        const div = document.createElement('div');
+        div.className = 'task-item';
+        div.innerHTML = `
+          <input type="checkbox" class="task-checkbox" ${t.checked ? 'checked' : ''} onchange="toggleTask(${i})">
+          <input type="text" class="task-name-input" value="${t.name}" onchange="updateTaskName(${i}, this.value)">
+          <input type="number" class="task-val-input" value="${t.val}" onchange="updateTaskVal(${i}, this.value)"> 円
+          <button class="btn-del" onclick="delTask(${i})">✕</button>
+        `;
+        container.appendChild(div);
+      });
+      updateAll();
+    }
+
+    function addTask() {
+      tasks.push({ name: "新規タスク", val: 5000, checked: false });
+      renderTasks();
+    }
+
+    function delTask(i) {
+      tasks.splice(i, 1);
+      renderTasks();
+    }
+
+    function toggleTask(i) { tasks[i].checked = !tasks[i].checked; updateAll(); }
+    function updateTaskName(i, val) { tasks[i].name = val; saveTasks(); }
+    function updateTaskVal(i, val) { tasks[i].val = parseInt(val) || 0; updateAll(); }
+    function saveTasks() { localStorage.setItem('cfg_tasks', JSON.stringify(tasks)); }
+
+    // 締め日から月別欄を逆算作成
+    function initMonthlyTracker() {
+      const targetDateVal = document.getElementById('targetDate').value;
+      const cutoff = parseInt(document.getElementById('cutoffDay').value) || 25;
+      
+      localStorage.setItem('cfg_target_date', targetDateVal);
+      localStorage.setItem('cfg_cutoff', cutoff);
+
+      if (!targetDateVal) return;
+
+      const targetDate = new Date(targetDateVal);
+      const today = new Date();
+
+      // カウントダウン
+      const diffTime = targetDate - today;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      document.getElementById('countdownDays').innerHTML = (diffDays < 0 ? '終了' : diffDays) + '<span>日</span>';
+
+      // 月別リスト計算 (過去3ヶ月〜目標月まで)
+      const months = [];
+      let cur = new Date(today.getFullYear(), today.getMonth() - 2, 1);
+      const end = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 1);
+
+      while (cur < end) {
+        const mKey = `${cur.getFullYear()}年${cur.getMonth() + 1}月度`;
+        months.push(mKey);
+        cur.setMonth(cur.getMonth() + 1);
+      }
+
+      const container = document.getElementById('monthlyInputs');
+      container.innerHTML = '';
+
+      const savedMonthly = JSON.parse(localStorage.getItem('cfg_monthly') || '{}');
+
+      months.forEach(m => {
+        const val = savedMonthly[m] || 0;
+        const div = document.createElement('div');
+        div.className = 'monthly-row';
+        div.innerHTML = `
+          <span>${m} (〜${cutoff}日締)</span>
+          <div><input type="number" class="monthly-val" data-month="${m}" value="${val}" onchange="saveMonthly()"> 円</div>
+        `;
+        container.appendChild(div);
       });
 
       updateAll();
-    };
+    }
+
+    function saveMonthly() {
+      const inputs = document.querySelectorAll('.monthly-val');
+      const data = {};
+      inputs.forEach(input => {
+        data[input.getAttribute('data-month')] = parseInt(input.value) || 0;
+      });
+      localStorage.setItem('cfg_monthly', JSON.stringify(data));
+      updateAll();
+    }
+
+    // 全体計算 ＆ グラフ更新
+    function updateAll() {
+      saveTasks();
+      
+      const targetInput = document.getElementById('targetAmount');
+      const targetTotal = parseInt(targetInput.value) || 1;
+      localStorage.setItem('cfg_target_amount', targetTotal);
+
+      // タスク合計
+      let taskTotal = 0;
+      tasks.forEach(t => { if (t.checked) taskTotal += t.val; });
+
+      // 月別実績合計
+      let monthlyTotal = 0;
+      const monthlyData = JSON.parse(localStorage.getItem('cfg_monthly') || '{}');
+      Object.values(monthlyData).forEach(v => monthlyTotal += parseInt(v) || 0);
+
+      const currentTotal = taskTotal + monthlyTotal;
+
+      // 画面更新 (正確に連動)
+      document.getElementById('currentAmount').innerText = '¥' + currentTotal.toLocaleString();
+      
+      const remaining = Math.max(0, targetTotal - currentTotal);
+      document.getElementById('remainingAmount').innerText = '¥' + remaining.toLocaleString();
+
+      const percentage = Math.min(Math.round((currentTotal / targetTotal) * 100), 100);
+      document.getElementById('progressFill').style.width = percentage + '%';
+      document.getElementById('progressPercent').innerText = percentage + '%';
+
+      // グラフ描画
+      renderChart(monthlyData);
+    }
+
+    function renderChart(monthlyData) {
+      const ctx = document.getElementById('monthlyChart').getContext('2d');
+      const labels = Object.keys(monthlyData);
+      const values = Object.values(monthlyData);
+
+      if (chartInstance) chartInstance.destroy();
+
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: '月別獲得額 (円)',
+            data: values,
+            backgroundColor: '#2563eb',
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+            x: { grid: { display: false } }
+          }
+        }
+      });
+    }
   </script>
 </body>
 </html>
