@@ -57,7 +57,7 @@
       margin-top: 12px;
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: center;
       gap: 8px;
       font-size: 13px;
       color: #cbd5e1;
@@ -72,6 +72,22 @@
     }
 
     /* 進捗サマリー */
+    .purpose-input-box {
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .purpose-input-box input {
+      width: 80%;
+      text-align: center;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 6px 10px;
+      border: 1px dashed var(--primary);
+      border-radius: 8px;
+      background: #f0f7ff;
+      color: var(--primary);
+    }
+
     .amount-display { text-align: center; margin-bottom: 16px; }
     .amount-label { font-size: 12px; color: var(--text-muted); }
     .amount-value { font-size: 32px; font-weight: 800; color: var(--primary); }
@@ -146,6 +162,16 @@
     .task-val-input { width: 80px; padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; text-align: right; }
     .btn-del { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px; }
 
+    .task-summary-row {
+      margin-top: 12px;
+      padding-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
     /* 月別実績エリア */
     .monthly-row {
       display: flex;
@@ -162,6 +188,19 @@
       text-align: right;
     }
 
+    /* メモ欄 */
+    .memo-area {
+      width: 100%;
+      height: 100px;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 13px;
+      resize: vertical;
+      margin-top: 6px;
+    }
+
     .footer-note { text-align: center; font-size: 11px; color: var(--text-muted); margin-top: 16px; }
   </style>
 </head>
@@ -171,23 +210,24 @@
     <h1>資金作成・進捗管理ツール</h1>
   </div>
 
-  <!-- カウントダウン ＆ 締め日設定 -->
+  <!-- カウントダウン -->
   <div class="card countdown-box">
     <div class="countdown-title">🎯 目標日（期日）まで</div>
     <div class="countdown-days" id="countdownDays">--<span>日</span></div>
     
     <div class="setting-row">
-      <label>毎月の締め日:</label>
-      <input type="number" id="cutoffDay" value="25" min="1" max="31" style="width: 60px;" onchange="initMonthlyTracker()"> 日
-    </div>
-    <div class="setting-row">
       <label>目標日（期日）:</label>
-      <input type="date" id="targetDate" onchange="initMonthlyTracker()">
+      <input type="date" id="targetDate" onchange="initTracker()">
     </div>
   </div>
 
   <!-- 進捗サマリー -->
   <div class="card">
+    <!-- 何費用か自由記入欄 -->
+    <div class="purpose-input-box">
+      <input type="text" id="purposeTitle" value="遠征・目的費用" placeholder="何費用か入力（例：〇〇遠征費用）" onchange="savePurpose()">
+    </div>
+
     <div class="amount-display">
       <div class="amount-label">現在の獲得・達成総額</div>
       <div class="amount-value" id="currentAmount">¥0</div>
@@ -217,6 +257,11 @@
       <button class="btn-add" onclick="addTask()">+ 項目追加</button>
     </div>
     <div id="taskList"></div>
+    <!-- タスク合計額表示 -->
+    <div class="task-summary-row">
+      <span>チェック済みタスク合計:</span>
+      <span id="taskTotalValue" style="color: var(--success);">¥0</span>
+    </div>
   </div>
 
   <!-- 月別実績 ＆ グラフ -->
@@ -226,8 +271,14 @@
     <div id="monthlyInputs"></div>
   </div>
 
+  <!-- メモ欄 -->
+  <div class="card">
+    <div class="section-title">📝 自由メモ欄</div>
+    <textarea class="memo-area" id="memoText" placeholder="目標達成に向けたメモ、ポイ活サイトのログイン情報、購入予定のグッズ一覧などご自由にお使いください。" onchange="saveMemo()"></textarea>
+  </div>
+
   <div class="footer-note">
-    ※設定・実績は端末内に自動保存されます。<br>
+    ※設定・実績・メモは端末内に自動保存されます。<br>
     ホーム画面に追加してアプリ感覚でご活用ください。
   </div>
 
@@ -254,21 +305,35 @@
         dateInput.value = d.toISOString().split('T')[0];
       }
 
-      // 締め日復元
-      const savedCutoff = localStorage.getItem('cfg_cutoff');
-      if (savedCutoff) document.getElementById('cutoffDay').value = savedCutoff;
+      // 何費用か復元
+      const savedPurpose = localStorage.getItem('cfg_purpose');
+      if (savedPurpose) document.getElementById('purposeTitle').value = savedPurpose;
 
       // 目標額復元
       const savedAmount = localStorage.getItem('cfg_target_amount');
       if (savedAmount) document.getElementById('targetAmount').value = savedAmount;
+
+      // メモ復元
+      const savedMemo = localStorage.getItem('cfg_memo');
+      if (savedMemo) document.getElementById('memoText').value = savedMemo;
 
       // タスク復元
       const savedTasks = localStorage.getItem('cfg_tasks');
       if (savedTasks) tasks = JSON.parse(savedTasks);
 
       renderTasks();
-      initMonthlyTracker();
+      initTracker();
     };
+
+    function savePurpose() {
+      const val = document.getElementById('purposeTitle').value;
+      localStorage.setItem('cfg_purpose', val);
+    }
+
+    function saveMemo() {
+      const val = document.getElementById('memoText').value;
+      localStorage.setItem('cfg_memo', val);
+    }
 
     // タスク描画
     function renderTasks() {
@@ -304,13 +369,10 @@
     function updateTaskVal(i, val) { tasks[i].val = parseInt(val) || 0; updateAll(); }
     function saveTasks() { localStorage.setItem('cfg_tasks', JSON.stringify(tasks)); }
 
-    // 締め日から月別欄を逆算作成
-    function initMonthlyTracker() {
+    // 日付・カウントダウン処理
+    function initTracker() {
       const targetDateVal = document.getElementById('targetDate').value;
-      const cutoff = parseInt(document.getElementById('cutoffDay').value) || 25;
-      
       localStorage.setItem('cfg_target_date', targetDateVal);
-      localStorage.setItem('cfg_cutoff', cutoff);
 
       if (!targetDateVal) return;
 
@@ -322,9 +384,9 @@
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       document.getElementById('countdownDays').innerHTML = (diffDays < 0 ? '終了' : diffDays) + '<span>日</span>';
 
-      // 月別リスト計算 (過去3ヶ月〜目標月まで)
+      // 月別リスト計算 (過去2ヶ月〜目標月まで)
       const months = [];
-      let cur = new Date(today.getFullYear(), today.getMonth() - 2, 1);
+      let cur = new Date(today.getFullYear(), today.getMonth() - 1, 1);
       const end = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 1);
 
       while (cur < end) {
@@ -343,7 +405,7 @@
         const div = document.createElement('div');
         div.className = 'monthly-row';
         div.innerHTML = `
-          <span>${m} (〜${cutoff}日締)</span>
+          <span>${m}</span>
           <div><input type="number" class="monthly-val" data-month="${m}" value="${val}" onchange="saveMonthly()"> 円</div>
         `;
         container.appendChild(div);
@@ -373,6 +435,7 @@
       // タスク合計
       let taskTotal = 0;
       tasks.forEach(t => { if (t.checked) taskTotal += t.val; });
+      document.getElementById('taskTotalValue').innerText = '¥' + taskTotal.toLocaleString();
 
       // 月別実績合計
       let monthlyTotal = 0;
