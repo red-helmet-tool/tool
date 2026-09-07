@@ -3,209 +3,347 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>遠征資金 タダ活進捗チェッカー</title>
+  <title>目標達成！タダ活・お小遣い進捗チェッカー</title>
   <style>
     :root {
-      --bg-color: #f4f6f8;
+      --bg: #f8fafc;
       --card-bg: #ffffff;
-      --primary: #1d4ed8;
-      --text: #1f2937;
-      --gray: #9ca3af;
+      --primary: #2563eb;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
       --success: #10b981;
     }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: var(--bg-color);
+      background-color: var(--bg);
       color: var(--text);
-      margin: 0;
+      line-height: 1.5;
       padding: 16px;
       max-width: 480px;
-      margin-left: auto;
-      margin-right: auto;
+      margin: 0 auto;
     }
+
     .header {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
+
     .header h1 {
-      font-size: 20px;
-      margin: 0 0 8px 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
     }
-    .header p {
-      font-size: 13px;
-      color: #6b7280;
-      margin: 0;
-    }
+
     .card {
       background: var(--card-bg);
-      border-radius: 12px;
-      padding: 16px;
+      border-radius: 16px;
+      padding: 20px;
       margin-bottom: 16px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      border: 1px solid var(--border);
     }
-    .progress-box {
+
+    /* カウントダウンセクション */
+    .countdown-box {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      color: #ffffff;
       text-align: center;
+      border: none;
     }
-    .amount {
+
+    .countdown-title {
+      font-size: 13px;
+      color: #94a3b8;
+      margin-bottom: 4px;
+    }
+
+    .countdown-days {
+      font-size: 36px;
+      font-weight: 800;
+      color: #38bdf8;
+      line-height: 1.2;
+    }
+
+    .countdown-days span {
+      font-size: 16px;
+      font-weight: 400;
+      color: #ffffff;
+      margin-left: 4px;
+    }
+
+    .date-picker-group {
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #cbd5e1;
+    }
+
+    .date-picker-group input[type="date"] {
+      background: #334155;
+      border: 1px solid #475569;
+      color: #ffffff;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+
+    /* 進捗サマリー */
+    .amount-display {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .amount-label {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .amount-value {
       font-size: 32px;
-      font-weight: bold;
+      font-weight: 800;
       color: var(--primary);
-      margin: 8px 0;
     }
+
     .progress-bar-bg {
-      background: #e5e7eb;
-      border-radius: 8px;
+      background: var(--border);
       height: 12px;
+      border-radius: 6px;
       overflow: hidden;
       margin-bottom: 8px;
     }
+
     .progress-bar-fill {
-      background: var(--primary);
+      background: linear-gradient(90deg, var(--primary), #3b82f6);
       height: 100%;
       width: 0%;
-      transition: width 0.3s ease;
+      transition: width 0.4s ease;
     }
-    .target-input-group {
+
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .target-setting {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 12px;
-      font-size: 14px;
+      font-size: 13px;
     }
-    .target-input-group input {
-      width: 100px;
-      padding: 6px;
-      border: 1px solid #d1d5db;
+
+    .target-setting input {
+      width: 110px;
+      padding: 6px 8px;
+      border: 1px solid var(--border);
       border-radius: 6px;
       text-align: right;
       font-size: 14px;
+      font-weight: 600;
     }
+
+    /* タスクリスト */
+    .section-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
     .task-list {
       list-style: none;
-      padding: 0;
-      margin: 0;
     }
+
     .task-item {
       display: flex;
       align-items: center;
       padding: 12px 0;
-      border-bottom: 1px solid #f3f4f6;
+      border-bottom: 1px solid var(--border);
     }
+
     .task-item:last-child {
       border-bottom: none;
     }
+
     .task-checkbox {
-      width: 20px;
-      height: 20px;
+      width: 22px;
+      height: 22px;
+      accent-color: var(--primary);
       margin-right: 12px;
       cursor: pointer;
     }
-    .task-info {
+
+    .task-content {
       flex: 1;
     }
-    .task-title {
-      font-size: 15px;
+
+    .task-name {
+      font-size: 14px;
       font-weight: 600;
     }
-    .task-memo {
-      font-size: 12px;
-      color: #6b7280;
-      margin-top: 2px;
+
+    .task-desc {
+      font-size: 11px;
+      color: var(--text-muted);
     }
-    .task-value {
-      font-weight: bold;
+
+    .task-val {
       font-size: 14px;
+      font-weight: 700;
       color: var(--success);
     }
-    .notice {
-      font-size: 11px;
-      color: var(--gray);
+
+    .footer-note {
       text-align: center;
-      margin-top: 24px;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 16px;
     }
   </style>
 </head>
 <body>
 
   <div class="header">
-    <h1>遠征資金 タダ活進捗チェッカー</h1>
-    <p>目指せ手出し0円！タスクを完了して資金を稼ごう</p>
+    <h1>資金作成・進捗チェッカー</h1>
   </div>
 
-  <!-- 進捗サマリー -->
-  <div class="card progress-box">
-    <div style="font-size: 13px; color: #6b7280;">現在の獲得見込み額</div>
-    <div class="amount" id="currentAmount">¥0</div>
+  <!-- カウントダウンエリア -->
+  <div class="card countdown-box">
+    <div class="countdown-title">🎯 目標日（予定・期日）まで</div>
+    <div class="countdown-days" id="countdownDays">--<span>日</span></div>
+    <div class="date-picker-group">
+      <label for="targetDate">目標日設定:</label>
+      <input type="date" id="targetDate" onchange="updateCountdown()">
+    </div>
+  </div>
+
+  <!-- 進捗サマリーエリア -->
+  <div class="card">
+    <div class="amount-display">
+      <div class="amount-label">現在の獲得・節約達成額</div>
+      <div class="amount-value" id="currentAmount">¥0</div>
+    </div>
+    
     <div class="progress-bar-bg">
       <div class="progress-bar-fill" id="progressFill"></div>
     </div>
-    <div class="target-input-group">
-      <span>目標遠征費：</span>
+    
+    <div class="progress-info">
+      <span>達成率: <strong id="progressPercent" style="color: var(--primary);">0%</strong></span>
+      <span>残り必要額: <strong id="remainingAmount">¥0</strong></span>
+    </div>
+
+    <div class="target-setting">
+      <span>目標達成額：</span>
       <div>
-        <input type="number" id="targetInput" value="50000" onchange="updateProgress()"> 円
+        <input type="number" id="targetAmount" value="50000" step="1000" onchange="updateAll()"> 円
       </div>
     </div>
   </div>
 
-  <!-- タスク一覧 -->
+  <!-- タスクエリア -->
   <div class="card">
-    <div style="font-size: 14px; font-weight: bold; margin-bottom: 12px; color: #374151;">
-      📌 ポイ活・遠征資金タスク
-    </div>
+    <div class="section-title">📌 資金作成・ポイ活タスク</div>
     <ul class="task-list">
       <li class="task-item">
-        <input type="checkbox" class="task-checkbox" data-val="12000" onchange="updateProgress()">
-        <div class="task-info">
-          <div class="task-title">クレジットカード発行</div>
-          <div class="task-memo">年会費無料の指定カード作成</div>
+        <input type="checkbox" class="task-checkbox" data-val="12000" onchange="updateAll()">
+        <div class="task-content">
+          <div class="task-name">高還元カード発行</div>
+          <div class="task-desc">年会費無料でポイント即時獲得</div>
         </div>
-        <div class="task-value">+12,000pt</div>
+        <div class="task-val">+12,000pt</div>
       </li>
       <li class="task-item">
-        <input type="checkbox" class="task-checkbox" data-val="8000" onchange="updateProgress()">
-        <div class="task-info">
-          <div class="task-title">証券・口座開設</div>
-          <div class="task-memo">SBI証券または楽天証券開設</div>
+        <input type="checkbox" class="task-checkbox" data-val="8000" onchange="updateAll()">
+        <div class="task-content">
+          <div class="task-name">口座開設・アプリ連携</div>
+          <div class="task-desc">条件達成で現金・ポイント付与</div>
         </div>
-        <div class="task-value">+8,000pt</div>
+        <div class="task-val">+8,000pt</div>
       </li>
       <li class="task-item">
-        <input type="checkbox" class="task-checkbox" data-val="5000" onchange="updateProgress()">
-        <div class="task-info">
-          <div class="task-title">ドライブパス予約</div>
-          <div class="task-memo">ETC周遊パス事前申し込み</div>
+        <input type="checkbox" class="task-checkbox" data-val="5000" onchange="updateAll()">
+        <div class="task-content">
+          <div class="task-name">固定費・キャンペーン見直し</div>
+          <div class="task-desc">毎月のお小遣いを浮かせる</div>
         </div>
-        <div class="task-value">高速半額</div>
+        <div class="task-val">+5,000円</div>
       </li>
       <li class="task-item">
-        <input type="checkbox" class="task-checkbox" data-val="15000" onchange="updateProgress()">
-        <div class="task-info">
-          <div class="task-title">不用品買取・現金化</div>
-          <div class="task-memo">使わないグッズ・家電の送付</div>
+        <input type="checkbox" class="task-checkbox" data-val="15000" onchange="updateAll()">
+        <div class="task-content">
+          <div class="task-name">不用品整理・現金化</div>
+          <div class="task-desc">使わないものの出張・宅配買取</div>
         </div>
-        <div class="task-value">+15,000円</div>
+        <div class="task-val">+15,000円</div>
       </li>
       <li class="task-item">
-        <input type="checkbox" class="task-checkbox" data-val="10000" onchange="updateProgress()">
-        <div class="task-info">
-          <div class="task-title">ポイント現金化・請求相殺</div>
-          <div class="task-memo">カード引き落とし充当手続き</div>
+        <input type="checkbox" class="task-checkbox" data-val="10000" onchange="updateAll()">
+        <div class="task-content">
+          <div class="task-name">ポイント充当・キャッシュバック</div>
+          <div class="task-desc">貯まったポイントで実質0円化</div>
         </div>
-        <div class="task-value">+10,000円</div>
+        <div class="task-val">+10,000円</div>
       </li>
     </ul>
   </div>
 
-  <div class="notice">
-    ※チェック状態はスマホ内に自動保存されます。<br>
-    ブラウザの「ホーム画面に追加」でアプリのように使えます。
+  <div class="footer-note">
+    ※設定・チェック状態は端末内に自動保存されます。<br>
+    ブラウザの「ホーム画面に追加」でアプリ感覚で使えます。
   </div>
 
   <script>
-    // 状態の保持と計算
-    function updateProgress() {
+    function updateCountdown() {
+      const dateInput = document.getElementById('targetDate');
+      const display = document.getElementById('countdownDays');
+      
+      if (!dateInput.value) {
+        display.innerHTML = '--<span>日</span>';
+        return;
+      }
+
+      localStorage.setItem('enpro_target_date', dateInput.value);
+
+      const target = new Date(dateInput.value);
+      const today = new Date();
+      
+      target.setHours(0, 0, 0, 0);
+      today.setHours(0, 0, 0, 0);
+
+      const diffTime = target - today;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays < 0) {
+        display.innerHTML = '終了<span></span>';
+      } else if (diffDays === 0) {
+        display.innerHTML = '当日！<span></span>';
+      } else {
+        display.innerHTML = diffDays + '<span>日</span>';
+      }
+    }
+
+    function updateAll() {
       const checkboxes = document.querySelectorAll('.task-checkbox');
-      const targetInput = document.getElementById('targetInput');
+      const targetInput = document.getElementById('targetAmount');
+      
       let currentTotal = 0;
       let targetTotal = parseInt(targetInput.value) || 1;
 
@@ -213,33 +351,47 @@
         if (cb.checked) {
           currentTotal += parseInt(cb.getAttribute('data-val'));
         }
-        localStorage.setItem('task_' + index, cb.checked);
+        localStorage.setItem('enpro_task_' + index, cb.checked);
       });
 
-      localStorage.setItem('target_amount', targetTotal);
+      localStorage.setItem('enpro_target_amount', targetTotal);
 
-      // 表示更新
       document.getElementById('currentAmount').innerText = '¥' + currentTotal.toLocaleString();
+      
+      let remaining = Math.max(0, targetTotal - currentTotal);
+      document.getElementById('remainingAmount').innerText = '¥' + remaining.toLocaleString();
+
       let percentage = Math.min(Math.round((currentTotal / targetTotal) * 100), 100);
       document.getElementById('progressFill').style.width = percentage + '%';
+      document.getElementById('progressPercent').innerText = percentage + '%';
     }
 
-    // 復元処理
     window.onload = function() {
-      const targetInput = document.getElementById('targetInput');
-      const savedTarget = localStorage.getItem('target_amount');
-      if (savedTarget) {
-        targetInput.value = savedTarget;
+      const savedDate = localStorage.getItem('enpro_target_date');
+      const dateInput = document.getElementById('targetDate');
+      if (savedDate) {
+        dateInput.value = savedDate;
+      } else {
+        const defaultDate = new Date();
+        defaultDate.setDate(defaultDate.getDate() + 30);
+        dateInput.value = defaultDate.toISOString().split('T')[0];
+      }
+      updateCountdown();
+
+      const savedAmount = localStorage.getItem('enpro_target_amount');
+      if (savedAmount) {
+        document.getElementById('targetAmount').value = savedAmount;
       }
 
       const checkboxes = document.querySelectorAll('.task-checkbox');
       checkboxes.forEach((cb, index) => {
-        const savedState = localStorage.getItem('task_' + index);
+        const savedState = localStorage.getItem('enpro_task_' + index);
         if (savedState === 'true') {
           cb.checked = true;
         }
       });
-      updateProgress();
+
+      updateAll();
     };
   </script>
 </body>
