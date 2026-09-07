@@ -13,7 +13,7 @@
       --primary: #2563eb;
       --text: #0f172a;
       --text-muted: #64748b;
-      --border: #e2e8f0;
+      --border: #cbd5e1;
       --success: #10b981;
       --danger: #ef4444;
     }
@@ -30,8 +30,30 @@
       margin: 0 auto;
     }
 
-    .header { text-align: center; margin-bottom: 16px; }
+    .header { text-align: center; margin-bottom: 12px; }
     .header h1 { font-size: 18px; font-weight: 700; }
+
+    /* 使い方ガイド */
+    .guide-box {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 16px;
+      font-size: 12px;
+      color: #1e40af;
+    }
+    .guide-title { font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
+    .guide-steps { list-style: none; padding: 0; }
+    .guide-steps li { margin-bottom: 3px; display: flex; align-items: center; gap: 6px; }
+    .step-badge {
+      background: var(--primary);
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 10px;
+    }
 
     .card {
       background: var(--card-bg);
@@ -66,7 +88,7 @@
       background: #334155;
       border: 1px solid #475569;
       color: #ffffff;
-      padding: 4px 8px;
+      padding: 6px 10px;
       border-radius: 6px;
       font-size: 13px;
     }
@@ -77,12 +99,12 @@
       text-align: center;
     }
     .purpose-input-box input {
-      width: 80%;
+      width: 90%;
       text-align: center;
       font-size: 15px;
       font-weight: 700;
-      padding: 6px 10px;
-      border: 1px dashed var(--primary);
+      padding: 8px 10px;
+      border: 2px dashed var(--primary);
       border-radius: 8px;
       background: #f0f7ff;
       color: var(--primary);
@@ -93,7 +115,7 @@
     .amount-value { font-size: 32px; font-weight: 800; color: var(--primary); }
     
     .progress-bar-bg {
-      background: var(--border);
+      background: #e2e8f0;
       height: 12px;
       border-radius: 6px;
       overflow: hidden;
@@ -122,13 +144,14 @@
       font-size: 13px;
     }
     .target-setting input {
-      width: 110px;
+      width: 120px;
       padding: 6px 8px;
       border: 1px solid var(--border);
       border-radius: 6px;
       text-align: right;
       font-size: 14px;
       font-weight: 600;
+      background: #fafafa;
     }
 
     /* カスタムタスク */
@@ -158,8 +181,8 @@
       border-bottom: 1px solid var(--border);
     }
     .task-checkbox { width: 20px; height: 20px; accent-color: var(--primary); }
-    .task-name-input { flex: 1; padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; }
-    .task-val-input { width: 80px; padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; text-align: right; }
+    .task-name-input { flex: 1; padding: 6px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; background: #fafafa; }
+    .task-val-input { width: 80px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; text-align: right; background: #fafafa; }
     .btn-del { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px; }
 
     .task-summary-row {
@@ -182,10 +205,11 @@
     }
     .monthly-row input {
       width: 100px;
-      padding: 4px 8px;
+      padding: 6px 8px;
       border: 1px solid var(--border);
       border-radius: 4px;
       text-align: right;
+      background: #fafafa;
     }
 
     /* メモ欄 */
@@ -199,6 +223,7 @@
       font-size: 13px;
       resize: vertical;
       margin-top: 6px;
+      background: #fafafa;
     }
 
     .footer-note { text-align: center; font-size: 11px; color: var(--text-muted); margin-top: 16px; }
@@ -208,6 +233,16 @@
 
   <div class="header">
     <h1>資金作成・進捗管理ツール</h1>
+  </div>
+
+  <!-- 💡 直感ガイド -->
+  <div class="guide-box">
+    <div class="guide-title">💡 かんたん3ステップ使い方</div>
+    <ul class="guide-steps">
+      <li><span class="step-badge">STEP 1</span> 「何費用か」と「目標日・目標額」を入力する</li>
+      <li><span class="step-badge">STEP 2</span> タスク（項目）を完了したらチェックを入れる</li>
+      <li><span class="step-badge">STEP 3</span> 毎月の実績を入力してグラフで達成度を確認！</li>
+    </ul>
   </div>
 
   <!-- カウントダウン -->
@@ -223,9 +258,8 @@
 
   <!-- 進捗サマリー -->
   <div class="card">
-    <!-- 何費用か自由記入欄 -->
     <div class="purpose-input-box">
-      <input type="text" id="purposeTitle" value="遠征・目的費用" placeholder="何費用か入力（例：〇〇遠征費用）" onchange="savePurpose()">
+      <input type="text" id="purposeTitle" value="遠征・目的費用" placeholder="👆 タップして目的を入力（例：〇〇遠征費用）" onchange="savePurpose()">
     </div>
 
     <div class="amount-display">
@@ -245,7 +279,7 @@
     <div class="target-setting">
       <span>目標達成額：</span>
       <div>
-        <input type="number" id="targetAmount" value="50000" step="1000" onchange="updateAll()"> 円
+        <input type="number" id="targetAmount" value="50000" step="1000" placeholder="目標金額" onchange="updateAll()"> 円
       </div>
     </div>
   </div>
@@ -253,11 +287,10 @@
   <!-- 自由編集タスクリスト -->
   <div class="card">
     <div class="section-title">
-      <span>📌 タスク・獲得項目</span>
+      <span>📌 タスク・獲得項目（チェックで加算）</span>
       <button class="btn-add" onclick="addTask()">+ 項目追加</button>
     </div>
     <div id="taskList"></div>
-    <!-- タスク合計額表示 -->
     <div class="task-summary-row">
       <span>チェック済みタスク合計:</span>
       <span id="taskTotalValue" style="color: var(--success);">¥0</span>
@@ -266,7 +299,7 @@
 
   <!-- 月別実績 ＆ グラフ -->
   <div class="card">
-    <div class="section-title">📊 月別実績・推移グラフ</div>
+    <div class="section-title">📊 月別実績・推移グラフ（毎月入力）</div>
     <canvas id="monthlyChart" style="max-height: 200px; margin-bottom: 16px;"></canvas>
     <div id="monthlyInputs"></div>
   </div>
@@ -285,16 +318,13 @@
   <script>
     let chartInstance = null;
 
-    // タスク初期値
     let tasks = [
       { name: "高還元カード発行", val: 12000, checked: false },
       { name: "口座開設・アプリ連携", val: 8000, checked: false },
       { name: "不用品整理・現金化", val: 15000, checked: false }
     ];
 
-    // 初期化
     window.onload = function() {
-      // 日付初期設定
       const savedDate = localStorage.getItem('cfg_target_date');
       const dateInput = document.getElementById('targetDate');
       if (savedDate) {
@@ -305,19 +335,15 @@
         dateInput.value = d.toISOString().split('T')[0];
       }
 
-      // 何費用か復元
       const savedPurpose = localStorage.getItem('cfg_purpose');
       if (savedPurpose) document.getElementById('purposeTitle').value = savedPurpose;
 
-      // 目標額復元
       const savedAmount = localStorage.getItem('cfg_target_amount');
       if (savedAmount) document.getElementById('targetAmount').value = savedAmount;
 
-      // メモ復元
       const savedMemo = localStorage.getItem('cfg_memo');
       if (savedMemo) document.getElementById('memoText').value = savedMemo;
 
-      // タスク復元
       const savedTasks = localStorage.getItem('cfg_tasks');
       if (savedTasks) tasks = JSON.parse(savedTasks);
 
@@ -335,7 +361,6 @@
       localStorage.setItem('cfg_memo', val);
     }
 
-    // タスク描画
     function renderTasks() {
       const container = document.getElementById('taskList');
       container.innerHTML = '';
@@ -345,8 +370,8 @@
         div.className = 'task-item';
         div.innerHTML = `
           <input type="checkbox" class="task-checkbox" ${t.checked ? 'checked' : ''} onchange="toggleTask(${i})">
-          <input type="text" class="task-name-input" value="${t.name}" onchange="updateTaskName(${i}, this.value)">
-          <input type="number" class="task-val-input" value="${t.val}" onchange="updateTaskVal(${i}, this.value)"> 円
+          <input type="text" class="task-name-input" value="${t.name}" placeholder="タスク名" onchange="updateTaskName(${i}, this.value)">
+          <input type="number" class="task-val-input" value="${t.val}" placeholder="金額" onchange="updateTaskVal(${i}, this.value)"> 円
           <button class="btn-del" onclick="delTask(${i})">✕</button>
         `;
         container.appendChild(div);
@@ -369,7 +394,6 @@
     function updateTaskVal(i, val) { tasks[i].val = parseInt(val) || 0; updateAll(); }
     function saveTasks() { localStorage.setItem('cfg_tasks', JSON.stringify(tasks)); }
 
-    // 日付・カウントダウン処理
     function initTracker() {
       const targetDateVal = document.getElementById('targetDate').value;
       localStorage.setItem('cfg_target_date', targetDateVal);
@@ -379,12 +403,10 @@
       const targetDate = new Date(targetDateVal);
       const today = new Date();
 
-      // カウントダウン
       const diffTime = targetDate - today;
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       document.getElementById('countdownDays').innerHTML = (diffDays < 0 ? '終了' : diffDays) + '<span>日</span>';
 
-      // 月別リスト計算 (過去2ヶ月〜目標月まで)
       const months = [];
       let cur = new Date(today.getFullYear(), today.getMonth() - 1, 1);
       const end = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 1);
@@ -406,7 +428,7 @@
         div.className = 'monthly-row';
         div.innerHTML = `
           <span>${m}</span>
-          <div><input type="number" class="monthly-val" data-month="${m}" value="${val}" onchange="saveMonthly()"> 円</div>
+          <div><input type="number" class="monthly-val" data-month="${m}" value="${val}" placeholder="0" onchange="saveMonthly()"> 円</div>
         `;
         container.appendChild(div);
       });
@@ -424,7 +446,6 @@
       updateAll();
     }
 
-    // 全体計算 ＆ グラフ更新
     function updateAll() {
       saveTasks();
       
@@ -432,19 +453,16 @@
       const targetTotal = parseInt(targetInput.value) || 1;
       localStorage.setItem('cfg_target_amount', targetTotal);
 
-      // タスク合計
       let taskTotal = 0;
       tasks.forEach(t => { if (t.checked) taskTotal += t.val; });
       document.getElementById('taskTotalValue').innerText = '¥' + taskTotal.toLocaleString();
 
-      // 月別実績合計
       let monthlyTotal = 0;
       const monthlyData = JSON.parse(localStorage.getItem('cfg_monthly') || '{}');
       Object.values(monthlyData).forEach(v => monthlyTotal += parseInt(v) || 0);
 
       const currentTotal = taskTotal + monthlyTotal;
 
-      // 画面更新 (正確に連動)
       document.getElementById('currentAmount').innerText = '¥' + currentTotal.toLocaleString();
       
       const remaining = Math.max(0, targetTotal - currentTotal);
@@ -454,7 +472,6 @@
       document.getElementById('progressFill').style.width = percentage + '%';
       document.getElementById('progressPercent').innerText = percentage + '%';
 
-      // グラフ描画
       renderChart(monthlyData);
     }
 
