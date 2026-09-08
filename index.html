@@ -33,7 +33,7 @@
     .header { text-align: center; margin-bottom: 12px; }
     .header h1 { font-size: 18px; font-weight: 700; }
 
-    /* 使い方ガイド */
+    /* ガイド */
     .guide-box {
       background: #eff6ff;
       border: 1px solid #bfdbfe;
@@ -43,7 +43,7 @@
       font-size: 12px;
       color: #1e40af;
     }
-    .guide-title { font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
+    .guide-title { font-weight: 700; margin-bottom: 6px; }
     .guide-steps { list-style: none; padding: 0; }
     .guide-steps li { margin-bottom: 3px; display: flex; align-items: center; gap: 6px; }
     .step-badge {
@@ -94,10 +94,7 @@
     }
 
     /* 進捗サマリー */
-    .purpose-input-box {
-      margin-bottom: 12px;
-      text-align: center;
-    }
+    .purpose-input-box { margin-bottom: 12px; text-align: center; }
     .purpose-input-box input {
       width: 90%;
       text-align: center;
@@ -154,7 +151,6 @@
       background: #fafafa;
     }
 
-    /* カスタムタスク */
     .section-title {
       font-size: 14px;
       font-weight: 700;
@@ -173,58 +169,50 @@
       cursor: pointer;
     }
 
-    .task-item {
+    /* 不用品リスト独自スタイル */
+    .item-row {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 10px 0;
+      gap: 6px;
+      padding: 8px 0;
       border-bottom: 1px solid var(--border);
     }
+    .item-name { flex: 1; padding: 6px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; }
+    .item-val { width: 70px; padding: 6px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; text-align: right; }
+    
+    .btn-status {
+      padding: 6px 10px;
+      border: none;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      min-width: 70px;
+    }
+    .btn-status.off { background: #e2e8f0; color: #475569; }
+    .btn-status.on { background: var(--success); color: white; }
+
+    /* ポイ活タスク */
+    .task-item { display: flex; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--border); }
     .task-checkbox { width: 20px; height: 20px; accent-color: var(--primary); }
-    .task-name-input { flex: 1; padding: 6px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; background: #fafafa; }
-    .task-val-input { width: 80px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; text-align: right; background: #fafafa; }
+    .task-name-input { flex: 1; padding: 6px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; }
+    .task-val-input { width: 80px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; text-align: right; }
     .btn-del { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px; }
 
-    .task-summary-row {
-      margin-top: 12px;
-      padding-top: 10px;
+    .summary-row {
+      margin-top: 10px;
       display: flex;
       justify-content: space-between;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
-      color: var(--text);
     }
 
-    /* 月別実績エリア */
-    .monthly-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-      font-size: 13px;
-    }
-    .monthly-row input {
-      width: 100px;
-      padding: 6px 8px;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      text-align: right;
-      background: #fafafa;
-    }
+    /* 月別実績 */
+    .monthly-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 13px; }
+    .monthly-row input { width: 100px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 4px; text-align: right; }
 
-    /* メモ欄 */
-    .memo-area {
-      width: 100%;
-      height: 100px;
-      padding: 10px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-family: inherit;
-      font-size: 13px;
-      resize: vertical;
-      margin-top: 6px;
-      background: #fafafa;
-    }
+    /* メモ */
+    .memo-area { width: 100%; height: 80px; padding: 8px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; }
 
     .footer-note { text-align: center; font-size: 11px; color: var(--text-muted); margin-top: 16px; }
   </style>
@@ -235,13 +223,13 @@
     <h1>資金作成・進捗管理ツール</h1>
   </div>
 
-  <!-- 💡 直感ガイド -->
+  <!-- ガイド -->
   <div class="guide-box">
-    <div class="guide-title">💡 かんたん3ステップ使い方</div>
+    <div class="guide-title">💡 かんたん使い方</div>
     <ul class="guide-steps">
-      <li><span class="step-badge">STEP 1</span> 「何費用か」と「目標日・目標額」を入力する</li>
-      <li><span class="step-badge">STEP 2</span> タスク（項目）を完了したらチェックを入れる</li>
-      <li><span class="step-badge">STEP 3</span> 毎月の実績を入力してグラフで達成度を確認！</li>
+      <li><span class="step-badge">1</span> 目標日と目標額をセット</li>
+      <li><span class="step-badge">2</span> 不用品を出品！売れたら「売れた！」ボタンをタップ</li>
+      <li><span class="step-badge">3</span> 自動で進捗ゲージが伸びて残り必要額が減少！</li>
     </ul>
   </div>
 
@@ -279,19 +267,32 @@
     <div class="target-setting">
       <span>目標達成額：</span>
       <div>
-        <input type="number" id="targetAmount" value="50000" step="1000" placeholder="目標金額" onchange="updateAll()"> 円
+        <input type="number" id="targetAmount" value="50000" step="1000" onchange="updateAll()"> 円
       </div>
     </div>
   </div>
 
-  <!-- 自由編集タスクリスト -->
+  <!-- 📦 不用品・メルカリ売上管理（最大30件） -->
   <div class="card">
     <div class="section-title">
-      <span>📌 タスク・獲得項目（チェックで加算）</span>
-      <button class="btn-add" onclick="addTask()">+ 項目追加</button>
+      <span>📦 不用品整理・出品リスト (最大30)</span>
+      <button class="btn-add" id="btnAddItem" onclick="addItem()">+ 商品追加</button>
+    </div>
+    <div id="itemList"></div>
+    <div class="summary-row">
+      <span>不用品売上達成額:</span>
+      <span id="itemTotalValue" style="color: var(--success);">¥0</span>
+    </div>
+  </div>
+
+  <!-- 📌 ポイ活・固定タスク -->
+  <div class="card">
+    <div class="section-title">
+      <span>📌 ポイ活・口座開設タスク</span>
+      <button class="btn-add" onclick="addTask()">+ タスク追加</button>
     </div>
     <div id="taskList"></div>
-    <div class="task-summary-row">
+    <div class="summary-row">
       <span>チェック済みタスク合計:</span>
       <span id="taskTotalValue" style="color: var(--success);">¥0</span>
     </div>
@@ -299,29 +300,34 @@
 
   <!-- 月別実績 ＆ グラフ -->
   <div class="card">
-    <div class="section-title">📊 月別実績・推移グラフ（毎月入力）</div>
-    <canvas id="monthlyChart" style="max-height: 200px; margin-bottom: 16px;"></canvas>
+    <div class="section-title">📊 月別実績・推移グラフ</div>
+    <canvas id="monthlyChart" style="max-height: 180px; margin-bottom: 12px;"></canvas>
     <div id="monthlyInputs"></div>
   </div>
 
-  <!-- メモ欄 -->
+  <!-- メモ -->
   <div class="card">
     <div class="section-title">📝 自由メモ欄</div>
-    <textarea class="memo-area" id="memoText" placeholder="目標達成に向けたメモ、ポイ活サイトのログイン情報、購入予定のグッズ一覧などご自由にお使いください。" onchange="saveMemo()"></textarea>
+    <textarea class="memo-area" id="memoText" placeholder="メモ書きにご自由にお使いください。" onchange="saveMemo()"></textarea>
   </div>
 
   <div class="footer-note">
-    ※設定・実績・メモは端末内に自動保存されます。<br>
+    ※設定・実績は端末内に自動保存されます。<br>
     ホーム画面に追加してアプリ感覚でご活用ください。
   </div>
 
   <script>
     let chartInstance = null;
 
+    // 不用品初期データ
+    let items = [
+      { name: "着ない服・古着", val: 3000, sold: false },
+      { name: "使わない家電・ゲーム", val: 8000, sold: false }
+    ];
+
+    // ポイ活初期データ
     let tasks = [
-      { name: "高還元カード発行", val: 12000, checked: false },
-      { name: "口座開設・アプリ連携", val: 8000, checked: false },
-      { name: "不用品整理・現金化", val: 15000, checked: false }
+      { name: "高還元カード発行", val: 12000, checked: false }
     ];
 
     window.onload = function() {
@@ -335,32 +341,58 @@
         dateInput.value = d.toISOString().split('T')[0];
       }
 
-      const savedPurpose = localStorage.getItem('cfg_purpose');
-      if (savedPurpose) document.getElementById('purposeTitle').value = savedPurpose;
+      if (localStorage.getItem('cfg_purpose')) document.getElementById('purposeTitle').value = localStorage.getItem('cfg_purpose');
+      if (localStorage.getItem('cfg_target_amount')) document.getElementById('targetAmount').value = localStorage.getItem('cfg_target_amount');
+      if (localStorage.getItem('cfg_memo')) document.getElementById('memoText').value = localStorage.getItem('cfg_memo');
 
-      const savedAmount = localStorage.getItem('cfg_target_amount');
-      if (savedAmount) document.getElementById('targetAmount').value = savedAmount;
+      if (localStorage.getItem('cfg_items')) items = JSON.parse(localStorage.getItem('cfg_items'));
+      if (localStorage.getItem('cfg_tasks')) tasks = JSON.parse(localStorage.getItem('cfg_tasks'));
 
-      const savedMemo = localStorage.getItem('cfg_memo');
-      if (savedMemo) document.getElementById('memoText').value = savedMemo;
-
-      const savedTasks = localStorage.getItem('cfg_tasks');
-      if (savedTasks) tasks = JSON.parse(savedTasks);
-
+      renderItems();
       renderTasks();
       initTracker();
     };
 
-    function savePurpose() {
-      const val = document.getElementById('purposeTitle').value;
-      localStorage.setItem('cfg_purpose', val);
+    function savePurpose() { localStorage.setItem('cfg_purpose', document.getElementById('purposeTitle').value); }
+    function saveMemo() { localStorage.setItem('cfg_memo', document.getElementById('memoText').value); }
+
+    /* 不用品リスト処理 */
+    function renderItems() {
+      const container = document.getElementById('itemList');
+      container.innerHTML = '';
+
+      items.forEach((item, i) => {
+        const div = document.createElement('div');
+        div.className = 'item-row';
+        div.innerHTML = `
+          <input type="text" class="item-name" value="${item.name}" placeholder="商品名" onchange="updateItemName(${i}, this.value)">
+          <input type="number" class="item-val" value="${item.val}" placeholder="金額" onchange="updateItemVal(${i}, this.value)"> 円
+          <button class="btn-status ${item.sold ? 'on' : 'off'}" onclick="toggleItemSold(${i})">
+            ${item.sold ? '✓ 売れた！' : '出品中'}
+          </button>
+          <button class="btn-del" onclick="delItem(${i})">✕</button>
+        `;
+        container.appendChild(div);
+      });
+
+      // 30件制限
+      document.getElementById('btnAddItem').style.display = items.length >= 30 ? 'none' : 'inline-block';
+      updateAll();
     }
 
-    function saveMemo() {
-      const val = document.getElementById('memoText').value;
-      localStorage.setItem('cfg_memo', val);
+    function addItem() {
+      if (items.length < 30) {
+        items.push({ name: "", val: 1000, sold: false });
+        renderItems();
+      }
     }
+    function delItem(i) { items.splice(i, 1); renderItems(); }
+    function toggleItemSold(i) { items[i].sold = !items[i].sold; renderItems(); }
+    function updateItemName(i, val) { items[i].name = val; saveItems(); }
+    function updateItemVal(i, val) { items[i].val = parseInt(val) || 0; updateAll(); }
+    function saveItems() { localStorage.setItem('cfg_items', JSON.stringify(items)); }
 
+    /* タスク処理 */
     function renderTasks() {
       const container = document.getElementById('taskList');
       container.innerHTML = '';
@@ -379,16 +411,8 @@
       updateAll();
     }
 
-    function addTask() {
-      tasks.push({ name: "新規タスク", val: 5000, checked: false });
-      renderTasks();
-    }
-
-    function delTask(i) {
-      tasks.splice(i, 1);
-      renderTasks();
-    }
-
+    function addTask() { tasks.push({ name: "", val: 5000, checked: false }); renderTasks(); }
+    function delTask(i) { tasks.splice(i, 1); renderTasks(); }
     function toggleTask(i) { tasks[i].checked = !tasks[i].checked; updateAll(); }
     function updateTaskName(i, val) { tasks[i].name = val; saveTasks(); }
     function updateTaskVal(i, val) { tasks[i].val = parseInt(val) || 0; updateAll(); }
@@ -447,21 +471,30 @@
     }
 
     function updateAll() {
+      saveItems();
       saveTasks();
       
       const targetInput = document.getElementById('targetAmount');
       const targetTotal = parseInt(targetInput.value) || 1;
       localStorage.setItem('cfg_target_amount', targetTotal);
 
+      // 不用品売上集計
+      let itemTotal = 0;
+      items.forEach(item => { if (item.sold) itemTotal += item.val; });
+      document.getElementById('itemTotalValue').innerText = '¥' + itemTotal.toLocaleString();
+
+      // タスク集計
       let taskTotal = 0;
       tasks.forEach(t => { if (t.checked) taskTotal += t.val; });
       document.getElementById('taskTotalValue').innerText = '¥' + taskTotal.toLocaleString();
 
+      // 月別手動入力集計
       let monthlyTotal = 0;
       const monthlyData = JSON.parse(localStorage.getItem('cfg_monthly') || '{}');
       Object.values(monthlyData).forEach(v => monthlyTotal += parseInt(v) || 0);
 
-      const currentTotal = taskTotal + monthlyTotal;
+      // 全合計（不用品売上 ＋ タスク ＋ 月別入力）
+      const currentTotal = itemTotal + taskTotal + monthlyTotal;
 
       document.getElementById('currentAmount').innerText = '¥' + currentTotal.toLocaleString();
       
