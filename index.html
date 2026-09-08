@@ -228,8 +228,8 @@
     <div class="guide-title">💡 かんたん使い方</div>
     <ul class="guide-steps">
       <li><span class="step-badge">1</span> 目標日と目標額をセット</li>
-      <li><span class="step-badge">2</span> 不用品を出品！売れたら「売れた！」ボタンをタップ</li>
-      <li><span class="step-badge">3</span> 自動で進捗ゲージが伸びて残り必要額が減少！</li>
+      <li><span class="step-badge">2</span> 不用品が「売れた！」らボタンをタップ（今月実績＆グラフへ自動反映）</li>
+      <li><span class="step-badge">3</span> 売却済みの不要になった項目は「✕」で消しても累積額は残り続けます！</li>
     </ul>
   </div>
 
@@ -280,8 +280,8 @@
     </div>
     <div id="itemList"></div>
     <div class="summary-row">
-      <span>不用品売上達成額:</span>
-      <span id="itemTotalValue" style="color: var(--success);">¥0</span>
+      <span>未決済・出品中の予定額合計:</span>
+      <span id="itemTotalValue" style="color: var(--text-muted);">¥0</span>
     </div>
   </div>
 
@@ -300,7 +300,7 @@
 
   <!-- 月別実績 ＆ グラフ -->
   <div class="card">
-    <div class="section-title">📊 月別実績・推移グラフ</div>
+    <div class="section-title">📊 月別実績・推移グラフ (自動集計)</div>
     <canvas id="monthlyChart" style="max-height: 180px; margin-bottom: 12px;"></canvas>
     <div id="monthlyInputs"></div>
   </div>
@@ -319,16 +319,20 @@
   <script>
     let chartInstance = null;
 
-    // 不用品初期データ
     let items = [
       { name: "着ない服・古着", val: 3000, sold: false },
       { name: "使わない家電・ゲーム", val: 8000, sold: false }
     ];
 
-    // ポイ活初期データ
     let tasks = [
       { name: "高還元カード発行", val: 12000, checked: false }
     ];
+
+    // 当月キー（例: "2026年9月度"）を取得
+    function getCurrentMonthKey() {
+      const now = new Date();
+      return `${now.getFullYear()}年${now.getMonth() + 1}月度`;
+    }
 
     window.onload = function() {
       const savedDate = localStorage.getItem('cfg_target_date');
@@ -375,7 +379,6 @@
         container.appendChild(div);
       });
 
-      // 30件制限
       document.getElementById('btnAddItem').style.display = items.length >= 30 ? 'none' : 'inline-block';
       updateAll();
     }
@@ -386,8 +389,32 @@
         renderItems();
       }
     }
+
     function delItem(i) { items.splice(i, 1); renderItems(); }
-    function toggleItemSold(i) { items[i].sold = !items[i].sold; renderItems(); }
+
+    // 売れたボタンを押したときの連動処理
+    function toggleItemSold(i) {
+      const currentSold = items[i].sold;
+      items[i].sold = !currentSold;
+
+      const itemAmount = items[i].val || 0;
+      const currentMonth = getCurrentMonthKey();
+      const savedMonthly = JSON.parse(localStorage.getItem('cfg_monthly') || '{}');
+      let currentVal = parseInt(savedMonthly[currentMonth]) || 0;
+
+      if (!currentSold) {
+        // ONになったら当月実績に自動加算
+        savedMonthly[currentMonth] = currentVal + itemAmount;
+      } else {
+        // OFFに戻したら当月実績から減算
+        savedMonthly[currentMonth] = Math.max(0, currentVal - itemAmount);
+      }
+
+      localStorage.setItem('cfg_monthly', JSON.stringify(savedMonthly));
+      renderItems();
+      refreshMonthlyInputs();
+    }
+
     function updateItemName(i, val) { items[i].name = val; saveItems(); }
     function updateItemVal(i, val) { items[i].val = parseInt(val) || 0; updateAll(); }
     function saveItems() { localStorage.setItem('cfg_items', JSON.stringify(items)); }
@@ -413,7 +440,27 @@
 
     function addTask() { tasks.push({ name: "", val: 5000, checked: false }); renderTasks(); }
     function delTask(i) { tasks.splice(i, 1); renderTasks(); }
-    function toggleTask(i) { tasks[i].checked = !tasks[i].checked; updateAll(); }
+
+    function toggleTask(i) {
+      const currentChecked = tasks[i].checked;
+      tasks[i].checked = !currentChecked;
+
+      const taskAmount = tasks[i].val || 0;
+      const currentMonth = getCurrentMonthKey();
+      const savedMonthly = JSON.parse(localStorage.getItem('cfg_monthly') || '{}');
+      let currentVal = parseInt(savedMonthly[currentMonth]) || 0;
+
+      if (!currentChecked) {
+        savedMonthly[currentMonth] = currentVal + taskAmount;
+      } else {
+        savedMonthly[currentMonth] = Math.max(0, currentVal - taskAmount);
+      }
+
+      localStorage.setItem('cfg_monthly', JSON.stringify(savedMonthly));
+      renderTasks();
+      refreshMonthlyInputs();
+    }
+
     function updateTaskName(i, val) { tasks[i].name = val; saveTasks(); }
     function updateTaskVal(i, val) { tasks[i].val = parseInt(val) || 0; updateAll(); }
     function saveTasks() { localStorage.setItem('cfg_tasks', JSON.stringify(tasks)); }
@@ -441,12 +488,18 @@
         cur.setMonth(cur.getMonth() + 1);
       }
 
+      window.activeMonths = months;
+      refreshMonthlyInputs();
+    }
+
+    function refreshMonthlyInputs() {
       const container = document.getElementById('monthlyInputs');
+      if (!container || !window.activeMonths) return;
       container.innerHTML = '';
 
       const savedMonthly = JSON.parse(localStorage.getItem('cfg_monthly') || '{}');
 
-      months.forEach(m => {
+      window.activeMonths.forEach(m => {
         const val = savedMonthly[m] || 0;
         const div = document.createElement('div');
         div.className = 'monthly-row';
@@ -478,23 +531,23 @@
       const targetTotal = parseInt(targetInput.value) || 1;
       localStorage.setItem('cfg_target_amount', targetTotal);
 
-      // 不用品売上集計
-      let itemTotal = 0;
-      items.forEach(item => { if (item.sold) itemTotal += item.val; });
-      document.getElementById('itemTotalValue').innerText = '¥' + itemTotal.toLocaleString();
+      // 出品中（未決済）合計
+      let itemUnsoldTotal = 0;
+      items.forEach(item => { if (!item.sold) itemUnsoldTotal += item.val; });
+      document.getElementById('itemTotalValue').innerText = '¥' + itemUnsoldTotal.toLocaleString();
 
-      // タスク集計
+      // チェック済みタスク合計
       let taskTotal = 0;
       tasks.forEach(t => { if (t.checked) taskTotal += t.val; });
       document.getElementById('taskTotalValue').innerText = '¥' + taskTotal.toLocaleString();
 
-      // 月別手動入力集計
+      // 月別集計（売れた売上・達成タスクが全て自動蓄積される場所）
       let monthlyTotal = 0;
       const monthlyData = JSON.parse(localStorage.getItem('cfg_monthly') || '{}');
       Object.values(monthlyData).forEach(v => monthlyTotal += parseInt(v) || 0);
 
-      // 全合計（不用品売上 ＋ タスク ＋ 月別入力）
-      const currentTotal = itemTotal + taskTotal + monthlyTotal;
+      // 現在の獲得・達成総額
+      const currentTotal = monthlyTotal;
 
       document.getElementById('currentAmount').innerText = '¥' + currentTotal.toLocaleString();
       
@@ -510,8 +563,8 @@
 
     function renderChart(monthlyData) {
       const ctx = document.getElementById('monthlyChart').getContext('2d');
-      const labels = Object.keys(monthlyData);
-      const values = Object.values(monthlyData);
+      const labels = window.activeMonths || Object.keys(monthlyData);
+      const values = labels.map(m => monthlyData[m] || 0);
 
       if (chartInstance) chartInstance.destroy();
 
