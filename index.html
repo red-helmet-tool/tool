@@ -159,6 +159,8 @@
       justify-content: space-between;
       align-items: center;
     }
+    .btn-group { display: flex; gap: 6px; align-items: center; }
+    
     .btn-add {
       background: var(--primary);
       color: white;
@@ -167,6 +169,16 @@
       border-radius: 6px;
       font-size: 12px;
       cursor: pointer;
+    }
+    .btn-toggle {
+      background: #e2e8f0;
+      color: #475569;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: 600;
     }
 
     /* 不用品リスト独自スタイル */
@@ -229,7 +241,7 @@
     <ul class="guide-steps">
       <li><span class="step-badge">1</span> 目標日と目標額をセット</li>
       <li><span class="step-badge">2</span> 不用品が「売れた！」らボタンをタップ（今月実績＆グラフへ自動反映）</li>
-      <li><span class="step-badge">3</span> 売却済みの不要になった項目は「✕」で消しても累積額は残り続けます！</li>
+      <li><span class="step-badge">3</span> リストが増えて見づらい時は「たたむ」ボタンでスッキリ保存！</li>
     </ul>
   </div>
 
@@ -272,15 +284,20 @@
     </div>
   </div>
 
-  <!-- 📦 不用品・メルカリ売上管理（最大30件） -->
+  <!-- 📦 不用品・メルカリ売上管理（折りたたみ機能付き） -->
   <div class="card">
     <div class="section-title">
-      <span>📦 不用品整理・出品リスト (最大30)</span>
-      <button class="btn-add" id="btnAddItem" onclick="addItem()">+ 商品追加</button>
+      <span>📦 不用品整理・出品リスト</span>
+      <div class="btn-group">
+        <button class="btn-toggle" id="btnToggleItems" onclick="toggleItemArea()">▲ たたむ</button>
+        <button class="btn-add" id="btnAddItem" onclick="addItem()">+ 追加</button>
+      </div>
     </div>
-    <div id="itemList"></div>
+    <div id="itemContainer">
+      <div id="itemList"></div>
+    </div>
     <div class="summary-row">
-      <span>未決済・出品中の予定額合計:</span>
+      <span>出品中（未決済）の予定額合計:</span>
       <span id="itemTotalValue" style="color: var(--text-muted);">¥0</span>
     </div>
   </div>
@@ -318,6 +335,7 @@
 
   <script>
     let chartInstance = null;
+    let isItemOpen = true;
 
     let items = [
       { name: "着ない服・古着", val: 3000, sold: false },
@@ -328,7 +346,6 @@
       { name: "高還元カード発行", val: 12000, checked: false }
     ];
 
-    // 当月キー（例: "2026年9月度"）を取得
     function getCurrentMonthKey() {
       const now = new Date();
       return `${now.getFullYear()}年${now.getMonth() + 1}月度`;
@@ -360,6 +377,21 @@
     function savePurpose() { localStorage.setItem('cfg_purpose', document.getElementById('purposeTitle').value); }
     function saveMemo() { localStorage.setItem('cfg_memo', document.getElementById('memoText').value); }
 
+    /* 折たたみ切り替え */
+    function toggleItemArea() {
+      const container = document.getElementById('itemContainer');
+      const btn = document.getElementById('btnToggleItems');
+      isItemOpen = !isItemOpen;
+
+      if (isItemOpen) {
+        container.style.display = 'block';
+        btn.innerText = '▲ たたむ';
+      } else {
+        container.style.display = 'none';
+        btn.innerText = '▼ 開く';
+      }
+    }
+
     /* 不用品リスト処理 */
     function renderItems() {
       const container = document.getElementById('itemList');
@@ -386,13 +418,13 @@
     function addItem() {
       if (items.length < 30) {
         items.push({ name: "", val: 1000, sold: false });
+        if (!isItemOpen) toggleItemArea(); // 閉じていたら自動で開く
         renderItems();
       }
     }
 
     function delItem(i) { items.splice(i, 1); renderItems(); }
 
-    // 売れたボタンを押したときの連動処理
     function toggleItemSold(i) {
       const currentSold = items[i].sold;
       items[i].sold = !currentSold;
@@ -403,10 +435,8 @@
       let currentVal = parseInt(savedMonthly[currentMonth]) || 0;
 
       if (!currentSold) {
-        // ONになったら当月実績に自動加算
         savedMonthly[currentMonth] = currentVal + itemAmount;
       } else {
-        // OFFに戻したら当月実績から減算
         savedMonthly[currentMonth] = Math.max(0, currentVal - itemAmount);
       }
 
@@ -531,22 +561,18 @@
       const targetTotal = parseInt(targetInput.value) || 1;
       localStorage.setItem('cfg_target_amount', targetTotal);
 
-      // 出品中（未決済）合計
       let itemUnsoldTotal = 0;
       items.forEach(item => { if (!item.sold) itemUnsoldTotal += item.val; });
       document.getElementById('itemTotalValue').innerText = '¥' + itemUnsoldTotal.toLocaleString();
 
-      // チェック済みタスク合計
       let taskTotal = 0;
       tasks.forEach(t => { if (t.checked) taskTotal += t.val; });
       document.getElementById('taskTotalValue').innerText = '¥' + taskTotal.toLocaleString();
 
-      // 月別集計（売れた売上・達成タスクが全て自動蓄積される場所）
       let monthlyTotal = 0;
       const monthlyData = JSON.parse(localStorage.getItem('cfg_monthly') || '{}');
       Object.values(monthlyData).forEach(v => monthlyTotal += parseInt(v) || 0);
 
-      // 現在の獲得・達成総額
       const currentTotal = monthlyTotal;
 
       document.getElementById('currentAmount').innerText = '¥' + currentTotal.toLocaleString();
