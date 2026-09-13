@@ -252,6 +252,17 @@
   <!-- 元に戻す（Undo）ボタン -->
   <button class="btn-undo" onclick="undoState()">⟲ ひとつ前に戻す（操作の取り消し）</button>
 
+  <!-- バックアップ（エクスポート／インポート） -->
+  <div class="card" style="padding:12px;">
+    <div class="section-title" style="margin-bottom:8px;">💾 データのバックアップ</div>
+    <div class="btn-group" style="width:100%;">
+      <button class="btn-toggle" style="flex:1;" onclick="exportData()">📤 バックアップを保存</button>
+      <button class="btn-toggle" style="flex:1;" onclick="document.getElementById('importFile').click()">📥 バックアップを読み込む</button>
+    </div>
+    <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importData(event)">
+    <div class="footer-note" style="margin-top:8px; text-align:left;">※このツールのデータは端末内のみに保存されています。機種変更やブラウザのデータ削除で消えるため、時々「バックアップを保存」で書き出しておくことをおすすめします。</div>
+  </div>
+
   <!-- カウントダウン -->
   <div class="card countdown-box">
     <div class="countdown-title">🎯 目標日（期日）まで</div>
@@ -286,7 +297,7 @@
     <div class="target-setting">
       <span>目標達成額：</span>
       <div>
-        <input type="number" id="targetAmount" value="50000" step="1000" onchange="saveCurrentState(); updateAll();"> 円
+        <input type="number" id="targetAmount" value="50000" step="1000" min="1" onchange="saveCurrentState(); updateAll();"> 円
       </div>
     </div>
   </div>
@@ -395,6 +406,17 @@
 
     let toggleState = { items: true, poikatsu: true, fukumen: true, sukima: true };
 
+    // 壊れた保存データを読み込んでも画面全体が止まらないようにする安全パーサー
+    function safeParseJSON(str, fallback) {
+      if (!str) return fallback;
+      try {
+        return JSON.parse(str);
+      } catch (e) {
+        console.warn('保存データの読み込みに失敗したため、初期値を使用します。', e);
+        return fallback;
+      }
+    }
+
     function getCurrentMonthKey() {
       const now = new Date();
       return `${now.getFullYear()}年${now.getMonth() + 1}月度`;
@@ -447,7 +469,7 @@
 
       ['items', 'poikatsu', 'fukumen', 'sukima'].forEach(key => {
         if (localStorage.getItem('cfg_' + key)) {
-          dataStore[key] = JSON.parse(localStorage.getItem('cfg_' + key));
+          dataStore[key] = safeParseJSON(localStorage.getItem('cfg_' + key), dataStore[key]);
         }
       });
 
@@ -484,7 +506,7 @@
         const labelText = key === 'items' ? '売れた！' : '達成！';
         div.innerHTML = `
           <input type="text" class="row-name" value="${item.name}" placeholder="項目名" onchange="saveCurrentState(); updateRowName('${key}', ${i}, this.value)">
-          <input type="number" class="row-val" value="${item.val}" placeholder="金額" onchange="saveCurrentState(); updateRowVal('${key}', ${i}, this.value)"> 円
+          <input type="number" class="row-val" value="${item.val}" placeholder="金額" min="0" onchange="saveCurrentState(); updateRowVal('${key}', ${i}, this.value)"> 円
           <button class="btn-status ${item.done ? 'on' : 'off'}" onclick="saveCurrentState(); toggleRowStatus('${key}', ${i})">
             ${item.done ? '✓ ' + labelText : '未完了'}
           </button>
@@ -518,7 +540,7 @@
 
       const itemAmount = dataStore[key][i].val || 0;
       const currentMonth = getCurrentMonthKey();
-      const savedMonthly = JSON.parse(localStorage.getItem('cfg_monthly') || '{}');
+      const savedMonthly = safeParseJSON(localStorage.getItem('cfg_monthly'), {});
       let currentVal = parseInt(savedMonthly[currentMonth]) || 0;
 
       if (!currentDone) {
@@ -533,8 +555,72 @@
     }
 
     function updateRowName(key, i, val) { dataStore[key][i].name = val; saveAllStores(); }
-    function updateRowVal(key, i, val) { dataStore[key][i].val = parseInt(val) || 0; updateAll(); }
+    function updateRowVal(key, i, val) { dataStore[key][i].val = Math.max(0, parseInt(val) || 0); renderList(key); }
     
+    // データのバックアップ書き出し（JSONファイルとして端末に保存）
+    function exportData() {
+      const backup = {
+        exportedAt: new Date().toISOString(),
+        targetDate: document.getElementById('targetDate').value,
+        targetAmount: document.getElementById('targetAmount').value,
+        purpose: document.getElementById('purposeTitle').value,
+        memo: document.getElementById('memoText').value,
+        dataStore: dataStore,
+        monthly: safeParseJSON(localStorage.getItem('cfg_monthly'), {})
+      };
+
+      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const dateStr = new Date().toISOString().split('T')[0];
+      a.href = url;
+      a.download = `shikin-tool-backup-${dateStr}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // バックアップファイルの読み込み（上書き前に確認あり）
+    function importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const backup = safeParseJSON(e.target.result, null);
+        if (!backup || !backup.dataStore) {
+          alert('このファイルは読み込めませんでした。バックアップ保存で書き出したJSONファイルを選んでください。');
+          event.target.value = '';
+          return;
+        }
+        if (!confirm('現在のデータを、このバックアップファイルの内容で上書きします。よろしいですか？')) {
+          event.target.value = '';
+          return;
+        }
+
+        saveCurrentState(); // 上書き前の状態もundoで戻せるようにしておく
+
+        ['items', 'poikatsu', 'fukumen', 'sukima'].forEach(key => {
+          if (Array.isArray(backup.dataStore[key])) dataStore[key] = backup.dataStore[key];
+        });
+        if (backup.targetDate) document.getElementById('targetDate').value = backup.targetDate;
+        if (backup.targetAmount) document.getElementById('targetAmount').value = backup.targetAmount;
+        if (backup.purpose) document.getElementById('purposeTitle').value = backup.purpose;
+        if (typeof backup.memo === 'string') document.getElementById('memoText').value = backup.memo;
+        if (backup.monthly) localStorage.setItem('cfg_monthly', JSON.stringify(backup.monthly));
+
+        savePurpose();
+        saveMemo();
+        saveAllStores();
+        renderAllLists();
+        initTracker();
+        alert('バックアップを読み込みました。');
+        event.target.value = '';
+      };
+      reader.readAsText(file);
+    }
+
     function saveAllStores() {
       ['items', 'poikatsu', 'fukumen', 'sukima'].forEach(key => {
         localStorage.setItem('cfg_' + key, JSON.stringify(dataStore[key]));
@@ -573,7 +659,7 @@
       if (!container || !window.activeMonths) return;
       container.innerHTML = '';
 
-      const savedMonthly = JSON.parse(localStorage.getItem('cfg_monthly') || '{}');
+      const savedMonthly = safeParseJSON(localStorage.getItem('cfg_monthly'), {});
 
       window.activeMonths.forEach(m => {
         const val = savedMonthly[m] || 0;
@@ -581,7 +667,7 @@
         div.className = 'monthly-row';
         div.innerHTML = `
           <span>${m}</span>
-          <div><input type="number" class="monthly-val" data-month="${m}" value="${val}" placeholder="0" onchange="saveCurrentState(); saveMonthly();"> 円</div>
+          <div><input type="number" class="monthly-val" data-month="${m}" value="${val}" placeholder="0" min="0" onchange="saveCurrentState(); saveMonthly();"> 円</div>
         `;
         container.appendChild(div);
       });
@@ -593,7 +679,7 @@
       const inputs = document.querySelectorAll('.monthly-val');
       const data = {};
       inputs.forEach(input => {
-        data[input.getAttribute('data-month')] = parseInt(input.value) || 0;
+        data[input.getAttribute('data-month')] = Math.max(0, parseInt(input.value) || 0);
       });
       localStorage.setItem('cfg_monthly', JSON.stringify(data));
       updateAll();
@@ -603,7 +689,7 @@
       saveAllStores();
       
       const targetInput = document.getElementById('targetAmount');
-      const targetTotal = parseInt(targetInput.value) || 1;
+      const targetTotal = Math.max(1, parseInt(targetInput.value) || 1);
       localStorage.setItem('cfg_target_amount', targetTotal);
 
       // 未完了予定額小計
@@ -615,7 +701,7 @@
 
       // 達成実績総額
       let monthlyTotal = 0;
-      const monthlyData = JSON.parse(localStorage.getItem('cfg_monthly') || '{}');
+      const monthlyData = safeParseJSON(localStorage.getItem('cfg_monthly'), {});
       Object.values(monthlyData).forEach(v => monthlyTotal += parseInt(v) || 0);
 
       const currentTotal = monthlyTotal;
@@ -633,32 +719,43 @@
     }
 
     function renderChart(monthlyData) {
-      const ctx = document.getElementById('monthlyChart').getContext('2d');
-      const labels = window.activeMonths || Object.keys(monthlyData);
-      const values = labels.map(m => monthlyData[m] || 0);
+      // Chart.jsはCDN読み込みのため、通信環境によっては読み込みに失敗することがある。
+      // その場合でも他の機能（カウントダウン・進捗・金額集計）が止まらないよう、ここだけ影響を閉じ込める。
+      if (typeof Chart === 'undefined') {
+        console.warn('グラフ表示用ライブラリの読み込みに失敗したため、グラフは表示されません。他の機能には影響ありません。');
+        return;
+      }
 
-      if (chartInstance) chartInstance.destroy();
+      try {
+        const ctx = document.getElementById('monthlyChart').getContext('2d');
+        const labels = window.activeMonths || Object.keys(monthlyData);
+        const values = labels.map(m => monthlyData[m] || 0);
 
-      chartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: '月別獲得額 (円)',
-            data: values,
-            backgroundColor: '#2563eb',
-            borderRadius: 6
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: { legend: { display: false } },
-          scales: {
-            y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
-            x: { grid: { display: false } }
+        if (chartInstance) chartInstance.destroy();
+
+        chartInstance = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: '月別獲得額 (円)',
+              data: values,
+              backgroundColor: '#2563eb',
+              borderRadius: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+              x: { grid: { display: false } }
+            }
           }
-        }
-      });
+        });
+      } catch (e) {
+        console.warn('グラフの描画中にエラーが発生しました。', e);
+      }
     }
   </script>
 </body>
