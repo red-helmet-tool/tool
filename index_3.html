@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>資金作成・進捗管理ツール</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --primary: #2563eb;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #cbd5e1;
+      --success: #10b981;
+      --danger: #ef4444;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 16px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .header { text-align: center; margin-bottom: 12px; }
+    .header h1 { font-size: 18px; font-weight: 700; }
+
+    .guide-box {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 16px;
+      font-size: 12px;
+      color: #1e40af;
+    }
+    .guide-title { font-weight: 700; margin-bottom: 6px; }
+    .guide-steps { list-style: none; padding: 0; }
+    .guide-steps li { margin-bottom: 3px; display: flex; align-items: center; gap: 6px; }
+    .step-badge {
+      background: var(--primary);
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 10px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      border: 1px solid var(--border);
+    }
+
+    .countdown-box {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      color: #ffffff;
+      text-align: center;
+      border: none;
+    }
+    .countdown-title { font-size: 13px; color: #94a3b8; margin-bottom: 4px; }
+    .countdown-days { font-size: 36px; font-weight: 800; color: #38bdf8; line-height: 1.2; }
+    .countdown-days span { font-size: 16px; font-weight: 400; color: #ffffff; margin-left: 4px; }
+    
+    .setting-row {
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #cbd5e1;
+    }
+    .setting-row input {
+      background: #334155;
+      border: 1px solid #475569;
+      color: #ffffff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+
+    .purpose-input-box { margin-bottom: 12px; text-align: center; }
+    .purpose-input-box input {
+      width: 90%;
+      text-align: center;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 8px 10px;
+      border: 2px dashed var(--primary);
+      border-radius: 8px;
+      background: #f0f7ff;
+      color: var(--primary);
+    }
+
+    .amount-display { text-align: center; margin-bottom: 12px; }
+    .amount-label { font-size: 12px; color: var(--text-muted); }
+    .amount-value { font-size: 32px; font-weight: 800; color: var(--primary); }
+    
+    .progress-bar-bg {
+      background: #e2e8f0;
+      height: 12px;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .progress-bar-fill {
+      background: linear-gradient(90deg, var(--primary), #3b82f6);
+      height: 100%;
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .target-setting {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+    }
+    .target-setting input {
+      width: 120px;
+      padding: 6px 8px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      text-align: right;
+      font-size: 14px;
+      font-weight: 600;
+      background: #fafafa;
+    }
+
+    /* 共通セクションタイトル・ボタン配置調整 */
+    .section-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .btn-group { display: flex; gap: 6px; align-items: center; }
+    
+    .btn-add {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .btn-toggle {
+      background: #e2e8f0;
+      color: #475569;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-undo {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      width: 100%;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    /* 共通リスト行スタイル */
+    .list-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .row-name { flex: 1; padding: 6px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; }
+    .row-val { width: 70px; padding: 6px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; text-align: right; }
+    
+    .btn-status {
+      padding: 6px 10px;
+      border: none;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      min-width: 70px;
+    }
+    .btn-status.off { background: #e2e8f0; color: #475569; }
+    .btn-status.on { background: var(--success); color: white; }
+    .btn-del { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px; }
+
+    .summary-row {
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .monthly-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 13px; }
+    .monthly-row input { width: 100px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 4px; text-align: right; }
+
+    .memo-area { width: 100%; height: 80px; padding: 8px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; }
+
+    .footer-note { text-align: center; font-size: 11px; color: var(--text-muted); margin-top: 16px; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>資金作成・進捗管理ツール</h1>
+  </div>
+
+  <div class="guide-box">
+    <div class="guide-title">💡 かんたん使い方</div>
+    <ul class="guide-steps">
+      <li><span class="step-badge">1</span> 目標日と目標額をセット</li>
+      <li><span class="step-badge">2</span> 各タスクが完了したらボタンをタップ！</li>
+      <li><span class="step-badge">3</span> 間違えた時は「⟲ ひとつ前に戻す」でいつでも修復可能</li>
+    </ul>
+  </div>
+
+  <!-- 元に戻す（Undo）ボタン -->
+  <button class="btn-undo" onclick="undoState()">⟲ ひとつ前に戻す（操作の取り消し）</button>
+
+  <!-- バックアップ（エクスポート／インポート） -->
+  <div class="card" style="padding:12px;">
+    <div class="section-title" style="margin-bottom:8px;">💾 データのバックアップ</div>
+    <div class="btn-group" style="width:100%;">
+      <button class="btn-toggle" style="flex:1;" onclick="exportData()">📤 バックアップを保存</button>
+      <button class="btn-toggle" style="flex:1;" onclick="document.getElementById('importFile').click()">📥 バックアップを読み込む</button>
+    </div>
+    <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importData(event)">
+    <div class="footer-note" style="margin-top:8px; text-align:left;">※このツールのデータは端末内のみに保存されています。機種変更やブラウザのデータ削除で消えるため、時々「バックアップを保存」で書き出しておくことをおすすめします。</div>
+  </div>
+
+  <!-- カウントダウン -->
+  <div class="card countdown-box">
+    <div class="countdown-title">🎯 目標日（期日）まで</div>
+    <div class="countdown-days" id="countdownDays">--<span>日</span></div>
+    
+    <div class="setting-row">
+      <label>目標日（期日）:</label>
+      <input type="date" id="targetDate" onchange="initTracker()">
+    </div>
+  </div>
+
+  <!-- 進捗サマリー -->
+  <div class="card">
+    <div class="purpose-input-box">
+      <input type="text" id="purposeTitle" value="遠征・目的費用" placeholder="👆 タップして目的を入力" onchange="saveCurrentState(); savePurpose();">
+    </div>
+
+    <div class="amount-display">
+      <div class="amount-label">現在の獲得・達成総額</div>
+      <div class="amount-value" id="currentAmount">¥0</div>
+    </div>
+    
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressFill"></div>
+    </div>
+    
+    <div class="progress-info">
+      <span>達成率: <strong id="progressPercent" style="color: var(--primary);">0%</strong></span>
+      <span>残り必要額: <strong id="remainingAmount">¥0</strong></span>
+    </div>
+
+    <div style="text-align:center; margin-top:10px;">
+      <a href="./tax.html" style="font-size:12px; color: var(--primary); font-weight:700; text-decoration:none;">🧮 この実績の手取り・税金を計算する →</a>
+    </div>
+
+    <div class="target-setting">
+      <span>目標達成額：</span>
+      <div>
+        <input type="number" id="targetAmount" value="50000" step="1000" min="1" onchange="saveCurrentState(); updateAll();"> 円
+      </div>
+    </div>
+  </div>
+
+  <!-- 1. 📦 不用品整理・出品リスト -->
+  <div class="card">
+    <div class="section-title">
+      <span>📦 不用品整理・出品リスト</span>
+      <div class="btn-group">
+        <button class="btn-toggle" id="btnToggle_items" onclick="toggleSection('items')">▲ たたむ</button>
+        <button class="btn-add" id="btnAdd_items" onclick="addItem('items')">+ 追加</button>
+      </div>
+    </div>
+    <div id="container_items">
+      <div id="list_items"></div>
+    </div>
+    <div class="summary-row">
+      <span>出品中（未決済）の予定額:</span>
+      <span id="sum_items" style="color: var(--text-muted);">¥0</span>
+    </div>
+  </div>
+
+  <!-- 2. 📌 ポイ活・口座開設 -->
+  <div class="card">
+    <div class="section-title">
+      <span>📌 ポイ活・口座開設</span>
+      <div class="btn-group">
+        <button class="btn-toggle" id="btnToggle_poikatsu" onclick="toggleSection('poikatsu')">▲ たたむ</button>
+        <button class="btn-add" id="btnAdd_poikatsu" onclick="addItem('poikatsu')">+ 追加</button>
+      </div>
+    </div>
+    <div id="container_poikatsu">
+      <div id="list_poikatsu"></div>
+    </div>
+    <div class="summary-row">
+      <span>未完了タスクの予定額:</span>
+      <span id="sum_poikatsu" style="color: var(--text-muted);">¥0</span>
+    </div>
+  </div>
+
+  <!-- 3. 🕵️ 覆面調査 -->
+  <div class="card">
+    <div class="section-title">
+      <span>🕵️ 覆面調査</span>
+      <div class="btn-group">
+        <button class="btn-toggle" id="btnToggle_fukumen" onclick="toggleSection('fukumen')">▲ たたむ</button>
+        <button class="btn-add" id="btnAdd_fukumen" onclick="addItem('fukumen')">+ 追加</button>
+      </div>
+    </div>
+    <div id="container_fukumen">
+      <div id="list_fukumen"></div>
+    </div>
+    <div class="summary-row">
+      <span>未完了タスクの予定額:</span>
+      <span id="sum_fukumen" style="color: var(--text-muted);">¥0</span>
+    </div>
+  </div>
+
+  <!-- 4. ⚡ スキマバイト -->
+  <div class="card">
+    <div class="section-title">
+      <span>⚡ スキマバイト</span>
+      <div class="btn-group">
+        <button class="btn-toggle" id="btnToggle_sukima" onclick="toggleSection('sukima')">▲ たたむ</button>
+        <button class="btn-add" id="btnAdd_sukima" onclick="addItem('sukima')">+ 追加</button>
+      </div>
+    </div>
+    <div id="container_sukima">
+      <div id="list_sukima"></div>
+    </div>
+    <div class="summary-row">
+      <span>未完了タスクの予定額:</span>
+      <span id="sum_sukima" style="color: var(--text-muted);">¥0</span>
+    </div>
+  </div>
+
+  <!-- 月別実績 ＆ グラフ -->
+  <div class="card">
+    <div class="section-title">📊 月別実績・推移グラフ (自動集計)</div>
+    <canvas id="monthlyChart" style="max-height: 180px; margin-bottom: 12px;"></canvas>
+    <div id="monthlyInputs"></div>
+  </div>
+
+  <!-- メモ -->
+  <div class="card">
+    <div class="section-title">📝 自由メモ欄</div>
+    <textarea class="memo-area" id="memoText" placeholder="メモ書きにご自由にお使いください。" onchange="saveCurrentState(); saveMemo();"></textarea>
+  </div>
+
+  <div class="footer-note">
+    ※設定・実績は端末内に自動保存されます。<br>
+    ホーム画面に追加してアプリ感覚でご活用ください。
+  </div>
+
+  <script>
+    let chartInstance = null;
+    let historyStack = [];
+
+    // 各カテゴリデータ構造
+    let dataStore = {
+      items: [ { name: "着ない服・古着", val: 3000, done: false } ],
+      poikatsu: [ { name: "高還元カード発行", val: 12000, done: false } ],
+      fukumen: [ { name: "飲食店モニター調査", val: 5000, done: false } ],
+      sukima: [ { name: "単発イベントスタッフ", val: 8000, done: false } ]
+    };
+
+    let toggleState = { items: true, poikatsu: true, fukumen: true, sukima: true };
+
+    // 壊れた保存データを読み込んでも画面全体が止まらないようにする安全パーサー
+    function safeParseJSON(str, fallback) {
+      if (!str) return fallback;
+      try {
+        return JSON.parse(str);
+      } catch (e) {
+        console.warn('保存データの読み込みに失敗したため、初期値を使用します。', e);
+        return fallback;
+      }
+    }
+
+    function getCurrentMonthKey() {
+      const now = new Date();
+      return `${now.getFullYear()}年${now.getMonth() + 1}月度`;
+    }
+
+    // ひとつ前に戻す(Undo)用データ保持
+    function saveCurrentState() {
+      const state = {
+        dataStore: JSON.parse(JSON.stringify(dataStore)),
+        monthly: localStorage.getItem('cfg_monthly'),
+        targetAmount: document.getElementById('targetAmount').value,
+        purpose: document.getElementById('purposeTitle').value,
+        memo: document.getElementById('memoText').value
+      };
+      historyStack.push(state);
+      if (historyStack.length > 20) historyStack.shift(); // 最大20履歴
+    }
+
+    function undoState() {
+      if (historyStack.length === 0) {
+        alert("これ以上前に戻せる操作はありません。");
+        return;
+      }
+      const prev = historyStack.pop();
+      dataStore = prev.dataStore;
+      if (prev.monthly) localStorage.setItem('cfg_monthly', prev.monthly);
+      if (prev.targetAmount) document.getElementById('targetAmount').value = prev.targetAmount;
+      if (prev.purpose) document.getElementById('purposeTitle').value = prev.purpose;
+      if (prev.memo) document.getElementById('memoText').value = prev.memo;
+
+      saveAllStores();
+      renderAllLists();
+      refreshMonthlyInputs();
+    }
+
+    window.onload = function() {
+      const savedDate = localStorage.getItem('cfg_target_date');
+      const dateInput = document.getElementById('targetDate');
+      if (savedDate) {
+        dateInput.value = savedDate;
+      } else {
+        const d = new Date();
+        d.setDate(d.getDate() + 90);
+        dateInput.value = d.toISOString().split('T')[0];
+      }
+
+      if (localStorage.getItem('cfg_purpose')) document.getElementById('purposeTitle').value = localStorage.getItem('cfg_purpose');
+      if (localStorage.getItem('cfg_target_amount')) document.getElementById('targetAmount').value = localStorage.getItem('cfg_target_amount');
+      if (localStorage.getItem('cfg_memo')) document.getElementById('memoText').value = localStorage.getItem('cfg_memo');
+
+      ['items', 'poikatsu', 'fukumen', 'sukima'].forEach(key => {
+        if (localStorage.getItem('cfg_' + key)) {
+          dataStore[key] = safeParseJSON(localStorage.getItem('cfg_' + key), dataStore[key]);
+        }
+      });
+
+      renderAllLists();
+      initTracker();
+    };
+
+    function savePurpose() { localStorage.setItem('cfg_purpose', document.getElementById('purposeTitle').value); }
+    function saveMemo() { localStorage.setItem('cfg_memo', document.getElementById('memoText').value); }
+
+    // 折りたたみ切り替え
+    function toggleSection(key) {
+      toggleState[key] = !toggleState[key];
+      const container = document.getElementById('container_' + key);
+      const btn = document.getElementById('btnToggle_' + key);
+
+      if (toggleState[key]) {
+        container.style.display = 'block';
+        btn.innerText = '▲ たたむ';
+      } else {
+        container.style.display = 'none';
+        btn.innerText = '▼ 開く';
+      }
+    }
+
+    // 各リスト共通描画
+    function renderList(key) {
+      const container = document.getElementById('list_' + key);
+      container.innerHTML = '';
+
+      dataStore[key].forEach((item, i) => {
+        const div = document.createElement('div');
+        div.className = 'list-row';
+        const labelText = key === 'items' ? '売れた！' : '達成！';
+        div.innerHTML = `
+          <input type="text" class="row-name" value="${item.name}" placeholder="項目名" onchange="saveCurrentState(); updateRowName('${key}', ${i}, this.value)">
+          <input type="number" class="row-val" value="${item.val}" placeholder="金額" min="0" onchange="saveCurrentState(); updateRowVal('${key}', ${i}, this.value)"> 円
+          <button class="btn-status ${item.done ? 'on' : 'off'}" onclick="saveCurrentState(); toggleRowStatus('${key}', ${i})">
+            ${item.done ? '✓ ' + labelText : '未完了'}
+          </button>
+          <button class="btn-del" onclick="saveCurrentState(); delRow('${key}', ${i})">✕</button>
+        `;
+        container.appendChild(div);
+      });
+
+      updateAll();
+    }
+
+    function renderAllLists() {
+      ['items', 'poikatsu', 'fukumen', 'sukima'].forEach(key => renderList(key));
+    }
+
+    function addItem(key) {
+      saveCurrentState();
+      dataStore[key].push({ name: "", val: 3000, done: false });
+      if (!toggleState[key]) toggleSection(key);
+      renderList(key);
+    }
+
+    function delRow(key, i) {
+      dataStore[key].splice(i, 1);
+      renderList(key);
+    }
+
+    function toggleRowStatus(key, i) {
+      const currentDone = dataStore[key][i].done;
+      dataStore[key][i].done = !currentDone;
+
+      const itemAmount = dataStore[key][i].val || 0;
+      const currentMonth = getCurrentMonthKey();
+      const savedMonthly = safeParseJSON(localStorage.getItem('cfg_monthly'), {});
+      let currentVal = parseInt(savedMonthly[currentMonth]) || 0;
+
+      if (!currentDone) {
+        savedMonthly[currentMonth] = currentVal + itemAmount;
+      } else {
+        savedMonthly[currentMonth] = Math.max(0, currentVal - itemAmount);
+      }
+
+      localStorage.setItem('cfg_monthly', JSON.stringify(savedMonthly));
+      renderList(key);
+      refreshMonthlyInputs();
+    }
+
+    function updateRowName(key, i, val) { dataStore[key][i].name = val; saveAllStores(); }
+    function updateRowVal(key, i, val) { dataStore[key][i].val = Math.max(0, parseInt(val) || 0); renderList(key); }
+    
+    // データのバックアップ書き出し（JSONファイルとして端末に保存）
+    function exportData() {
+      const backup = {
+        exportedAt: new Date().toISOString(),
+        targetDate: document.getElementById('targetDate').value,
+        targetAmount: document.getElementById('targetAmount').value,
+        purpose: document.getElementById('purposeTitle').value,
+        memo: document.getElementById('memoText').value,
+        dataStore: dataStore,
+        monthly: safeParseJSON(localStorage.getItem('cfg_monthly'), {})
+      };
+
+      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const dateStr = new Date().toISOString().split('T')[0];
+      a.href = url;
+      a.download = `shikin-tool-backup-${dateStr}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // バックアップファイルの読み込み（上書き前に確認あり）
+    function importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const backup = safeParseJSON(e.target.result, null);
+        if (!backup || !backup.dataStore) {
+          alert('このファイルは読み込めませんでした。バックアップ保存で書き出したJSONファイルを選んでください。');
+          event.target.value = '';
+          return;
+        }
+        if (!confirm('現在のデータを、このバックアップファイルの内容で上書きします。よろしいですか？')) {
+          event.target.value = '';
+          return;
+        }
+
+        saveCurrentState(); // 上書き前の状態もundoで戻せるようにしておく
+
+        ['items', 'poikatsu', 'fukumen', 'sukima'].forEach(key => {
+          if (Array.isArray(backup.dataStore[key])) dataStore[key] = backup.dataStore[key];
+        });
+        if (backup.targetDate) document.getElementById('targetDate').value = backup.targetDate;
+        if (backup.targetAmount) document.getElementById('targetAmount').value = backup.targetAmount;
+        if (backup.purpose) document.getElementById('purposeTitle').value = backup.purpose;
+        if (typeof backup.memo === 'string') document.getElementById('memoText').value = backup.memo;
+        if (backup.monthly) localStorage.setItem('cfg_monthly', JSON.stringify(backup.monthly));
+
+        savePurpose();
+        saveMemo();
+        saveAllStores();
+        renderAllLists();
+        initTracker();
+        alert('バックアップを読み込みました。');
+        event.target.value = '';
+      };
+      reader.readAsText(file);
+    }
+
+    function saveAllStores() {
+      ['items', 'poikatsu', 'fukumen', 'sukima'].forEach(key => {
+        localStorage.setItem('cfg_' + key, JSON.stringify(dataStore[key]));
+      });
+    }
+
+    function initTracker() {
+      const targetDateVal = document.getElementById('targetDate').value;
+      localStorage.setItem('cfg_target_date', targetDateVal);
+
+      if (!targetDateVal) return;
+
+      const targetDate = new Date(targetDateVal);
+      const today = new Date();
+
+      const diffTime = targetDate - today;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      document.getElementById('countdownDays').innerHTML = (diffDays < 0 ? '終了' : diffDays) + '<span>日</span>';
+
+      const months = [];
+      let cur = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      const end = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 1);
+
+      while (cur < end) {
+        const mKey = `${cur.getFullYear()}年${cur.getMonth() + 1}月度`;
+        months.push(mKey);
+        cur.setMonth(cur.getMonth() + 1);
+      }
+
+      window.activeMonths = months;
+      refreshMonthlyInputs();
+    }
+
+    function refreshMonthlyInputs() {
+      const container = document.getElementById('monthlyInputs');
+      if (!container || !window.activeMonths) return;
+      container.innerHTML = '';
+
+      const savedMonthly = safeParseJSON(localStorage.getItem('cfg_monthly'), {});
+
+      window.activeMonths.forEach(m => {
+        const val = savedMonthly[m] || 0;
+        const div = document.createElement('div');
+        div.className = 'monthly-row';
+        div.innerHTML = `
+          <span>${m}</span>
+          <div><input type="number" class="monthly-val" data-month="${m}" value="${val}" placeholder="0" min="0" onchange="saveCurrentState(); saveMonthly();"> 円</div>
+        `;
+        container.appendChild(div);
+      });
+
+      updateAll();
+    }
+
+    function saveMonthly() {
+      const inputs = document.querySelectorAll('.monthly-val');
+      const data = {};
+      inputs.forEach(input => {
+        data[input.getAttribute('data-month')] = Math.max(0, parseInt(input.value) || 0);
+      });
+      localStorage.setItem('cfg_monthly', JSON.stringify(data));
+      updateAll();
+    }
+
+    function updateAll() {
+      saveAllStores();
+      
+      const targetInput = document.getElementById('targetAmount');
+      const targetTotal = Math.max(1, parseInt(targetInput.value) || 1);
+      localStorage.setItem('cfg_target_amount', targetTotal);
+
+      // 未完了予定額小計
+      ['items', 'poikatsu', 'fukumen', 'sukima'].forEach(key => {
+        let unDoneTotal = 0;
+        dataStore[key].forEach(item => { if (!item.done) unDoneTotal += item.val; });
+        document.getElementById('sum_' + key).innerText = '¥' + unDoneTotal.toLocaleString();
+      });
+
+      // 達成実績総額
+      let monthlyTotal = 0;
+      const monthlyData = safeParseJSON(localStorage.getItem('cfg_monthly'), {});
+      Object.values(monthlyData).forEach(v => monthlyTotal += parseInt(v) || 0);
+
+      const currentTotal = monthlyTotal;
+
+      document.getElementById('currentAmount').innerText = '¥' + currentTotal.toLocaleString();
+      
+      const remaining = Math.max(0, targetTotal - currentTotal);
+      document.getElementById('remainingAmount').innerText = '¥' + remaining.toLocaleString();
+
+      const percentage = Math.min(Math.round((currentTotal / targetTotal) * 100), 100);
+      document.getElementById('progressFill').style.width = percentage + '%';
+      document.getElementById('progressPercent').innerText = percentage + '%';
+
+      renderChart(monthlyData);
+    }
+
+    function renderChart(monthlyData) {
+      // Chart.jsはCDN読み込みのため、通信環境によっては読み込みに失敗することがある。
+      // その場合でも他の機能（カウントダウン・進捗・金額集計）が止まらないよう、ここだけ影響を閉じ込める。
+      if (typeof Chart === 'undefined') {
+        console.warn('グラフ表示用ライブラリの読み込みに失敗したため、グラフは表示されません。他の機能には影響ありません。');
+        return;
+      }
+
+      try {
+        const ctx = document.getElementById('monthlyChart').getContext('2d');
+        const labels = window.activeMonths || Object.keys(monthlyData);
+        const values = labels.map(m => monthlyData[m] || 0);
+
+        if (chartInstance) chartInstance.destroy();
+
+        chartInstance = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: '月別獲得額 (円)',
+              data: values,
+              backgroundColor: '#2563eb',
+              borderRadius: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+              x: { grid: { display: false } }
+            }
+          }
+        });
+      } catch (e) {
+        console.warn('グラフの描画中にエラーが発生しました。', e);
+      }
+    }
+  </script>
+</body>
+</html>

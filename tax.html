@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>副業手取りシミュレーター</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #faf9f6;
+    --card: #ffffff;
+    --line: #e6e2d8;
+    --ink: #1c2420;
+    --ink-soft: #5c6560;
+    --accent: #0d8f82;
+    --accent-soft: #e2f5f1;
+    --accent-soft-line: #bfe6df;
+    --good: #1a8a4a;
+    --good-soft: #e5f5eb;
+    --warn: #c2560c;
+    --warn-soft: #fbe9dd;
+    --muted-soft: #f1efe9;
+    --shadow: 0 1px 2px rgba(28,36,32,0.04), 0 8px 24px -12px rgba(28,36,32,0.12);
+    --radius: 18px;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Noto Sans JP", "Hiragino Sans", sans-serif;
+    padding: 16px 16px 40px;
+    display: flex;
+    justify-content: center;
+  }
+  main { width: 100%; max-width: 480px; }
+
+  .topnav { margin-bottom: 14px; }
+  .topnav a {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    text-decoration: none;
+    font-weight: 700;
+  }
+  .topnav a:hover { color: var(--accent); }
+
+  .eyebrow {
+    font-family: "Zen Kaku Gothic New", sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    margin: 0 0 6px;
+  }
+  h1 {
+    font-family: "Zen Kaku Gothic New", sans-serif;
+    font-weight: 900;
+    font-size: 25px;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    margin: 0 0 10px;
+  }
+  .lede { color: var(--ink-soft); font-size: 14px; line-height: 1.7; margin: 0 0 20px; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .autoload-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-soft-line);
+    padding: 4px 10px;
+    border-radius: 999px;
+    margin-bottom: 12px;
+  }
+  .autoload-tag.empty { color: var(--ink-soft); background: var(--muted-soft); border-color: var(--line); }
+
+  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 0; }
+  .field-label { font-weight: 700; font-size: 13.5px; margin-bottom: 3px; display: flex; justify-content: space-between; align-items: baseline; }
+  .field-label .src { font-size: 11px; font-weight: 500; color: var(--ink-soft); }
+  .field-help { font-size: 12px; color: var(--ink-soft); line-height: 1.6; margin-bottom: 8px; }
+  .amount-row {
+    display: flex; align-items: baseline; gap: 6px;
+    border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 14px;
+    background: var(--paper); transition: border-color .15s ease;
+  }
+  .amount-row:focus-within { border-color: var(--accent); }
+  .amount-row .yen { font-size: 14px; color: var(--ink-soft); font-weight: 500; }
+  .amount-row input {
+    flex: 1; min-width: 0; border: none; background: transparent; outline: none;
+    font-family: "Zen Kaku Gothic New", sans-serif; font-weight: 700; font-size: 20px;
+    color: var(--ink); font-variant-numeric: tabular-nums; -moz-appearance: textfield;
+  }
+  .amount-row input::-webkit-outer-spin-button, .amount-row input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .amount-row .unit { font-size: 13px; color: var(--ink-soft); }
+  .amount-row.nontax input { color: var(--ink-soft); }
+
+  .split-note {
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--line);
+  }
+
+  .meter-card { padding: 20px 20px 18px; }
+  .meter-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+  .meter-title { font-weight: 700; font-size: 14px; }
+  .meter-fig { font-family: "Zen Kaku Gothic New", sans-serif; font-weight: 900; font-size: 14px; font-variant-numeric: tabular-nums; }
+  .meter-track { position: relative; height: 14px; border-radius: 999px; background: var(--accent-soft); border: 1px solid var(--accent-soft-line); overflow: hidden; }
+  .meter-fill { position: absolute; inset: 0 auto 0 0; width: 0%; background: var(--accent); border-radius: 999px 0 0 999px; transition: width .35s ease; }
+  .meter-fill.over { background: var(--warn); }
+  .meter-scale { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-soft); margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .meter-status { margin-top: 14px; font-size: 13.5px; line-height: 1.6; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: "Zen Kaku Gothic New", sans-serif; font-weight: 700; font-size: 12.5px;
+    padding: 5px 12px; border-radius: 999px; margin-bottom: 8px;
+  }
+  .pill.good { background: var(--good-soft); color: var(--good); }
+  .pill.warn { background: var(--warn-soft); color: var(--warn); }
+  .pill .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  .rows { display: flex; flex-direction: column; }
+  .row { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 14px 0; border-top: 1px solid var(--line); }
+  .row:first-child { border-top: none; padding-top: 0; }
+  .row-label { font-size: 13.5px; font-weight: 500; color: var(--ink-soft); max-width: 62%; line-height: 1.5; }
+  .row-label b { color: var(--ink); font-weight: 700; }
+  .row-value { font-family: "Zen Kaku Gothic New", sans-serif; font-weight: 700; font-size: 14px; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .row-value.good { color: var(--good); }
+  .row-value.warn { color: var(--warn); }
+
+  .result-card { padding: 4px 20px 6px; }
+  .headline-stat { text-align: center; padding: 20px 0 16px; }
+  .headline-stat .label { font-size: 13px; color: var(--ink-soft); margin-bottom: 6px; }
+  .headline-stat .value { font-family: "Zen Kaku Gothic New", sans-serif; font-weight: 900; font-size: 38px; letter-spacing: -0.01em; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .headline-stat .value small { font-size: 17px; font-weight: 700; margin-left: 2px; }
+  .headline-stat .sub { font-size: 12px; color: var(--ink-soft); margin-top: 4px; }
+
+  .note { font-size: 12px; line-height: 1.7; color: var(--ink-soft); background: var(--paper); border: 1px dashed var(--line); border-radius: 12px; padding: 14px 16px; }
+  .note b { color: var(--ink); }
+  .note + .note { margin-top: 10px; }
+
+  footer { text-align: center; font-size: 12px; color: var(--ink-soft); margin-top: 22px; line-height: 1.7; }
+  footer .brand { font-weight: 700; color: var(--ink); }
+</style>
+</head>
+<body>
+<main>
+  <div class="topnav"><a href="./index.html">← 資金作成・進捗管理ツールに戻る</a></div>
+  <p class="eyebrow">カプおじの資金作成ツール</p>
+  <h1>副業・ポイ活の手取り計算</h1>
+  <p class="lede" id="ledeText">進捗管理ツールの記録を自動で読み込んで計算します。金額はいつでも書き換えられます。</p>
+
+  <div class="card">
+    <span class="autoload-tag" id="autoloadTag">📥 進捗ツールのデータを読み込みました</span>
+
+    <div class="field">
+      <div class="field-label"><span>課税対象の雑所得</span><span class="src">ポイ活・覆面調査・スキマバイト</span></div>
+      <p class="field-help">進捗管理ツールで「完了」にした、ポイ活・覆面調査・スキマバイトの合計額です。この部分が税金の対象になります。</p>
+      <div class="amount-row">
+        <span class="yen">¥</span>
+        <input id="taxable" type="number" inputmode="numeric" min="0" step="1000" value="0">
+        <span class="unit">円 / 年</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label"><span>非課税（参考）</span><span class="src">不用品整理・出品</span></div>
+      <p class="field-help">生活で使っていた不用品の売却は、原則として税金がかかりません（高額な貴金属・美術品などは除く）。そのため下の計算には含めていません。</p>
+      <div class="amount-row nontax">
+        <span class="yen">¥</span>
+        <input id="nontax" type="number" inputmode="numeric" min="0" step="1000" value="0">
+        <span class="unit">円 / 年</span>
+      </div>
+    </div>
+
+    <div class="split-note">進捗管理ツールの「完了」項目から自動計算しています。実際の金額と違う場合は、上の欄を直接書き換えてください。スキマバイトが給与扱いで源泉徴収されている場合は、その分すでに天引き済みです。</div>
+  </div>
+
+  <div class="card meter-card">
+    <div class="meter-top">
+      <span class="meter-title">20万円ラインまで</span>
+      <span class="meter-fig" id="meterFig">0 / 200,000円</span>
+    </div>
+    <div class="meter-track"><div class="meter-fill" id="meterFill"></div></div>
+    <div class="meter-scale"><span>0円</span><span>20万円</span></div>
+    <div class="meter-status">
+      <div id="pill" class="pill good"><span class="dot"></span><span id="pillText">20万円以内です</span></div>
+      <div id="statusText"></div>
+    </div>
+  </div>
+
+  <div class="card result-card">
+    <div class="headline-stat">
+      <div class="label">概算の手取り</div>
+      <div class="value">¥<span id="takeHome">0</span><small>/ 年</small></div>
+      <div class="sub">課税対象の雑所得から、住民税の概算を差し引いた金額です</div>
+    </div>
+    <div class="rows">
+      <div class="row">
+        <div class="row-label"><b>所得税</b>の確定申告</div>
+        <div class="row-value" id="incomeTaxRow">原則不要</div>
+      </div>
+      <div class="row">
+        <div class="row-label"><b>住民税</b>の申告</div>
+        <div class="row-value warn">必要です</div>
+      </div>
+      <div class="row">
+        <div class="row-label">住民税の概算<br><span style="font-size:11.5px">（雑所得の約10%が目安）</span></div>
+        <div class="row-value" id="residentTaxRow">¥0</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note"><b>住民税は20万円以下でも申告が必要です。</b>「年間20万円以下なら申告不要」というルールは<b>所得税（国）</b>だけの特例で、<b>住民税（市区町村）</b>には適用されません。意外と知られていない点なので、ここだけは覚えておいてください。</div>
+  <div class="note">この計算はあくまで概算の目安です。正式な税務相談ではありません。金額が大きくなってきたら、税理士やお住まいの市区町村の窓口に確認してください。</div>
+
+  <footer>
+    <span class="brand">カプおじ</span> — ノーリスクな資金作成・ポイ活の記録<br>
+    20万円を超えてきたら、次のステップもLINEでご案内します。
+  </footer>
+</main>
+
+<script>
+  function safeParseJSON(str, fallback) {
+    if (!str) return fallback;
+    try { return JSON.parse(str); } catch (e) { return fallback; }
+  }
+  function sumDone(list) {
+    if (!Array.isArray(list)) return 0;
+    return list.reduce((t, i) => t + (i && i.done ? (parseInt(i.val) || 0) : 0), 0);
+  }
+
+  // 進捗管理ツール（同じサイト内）の保存データを自動読み込み
+  const items = safeParseJSON(localStorage.getItem('cfg_items'), []);
+  const poikatsu = safeParseJSON(localStorage.getItem('cfg_poikatsu'), []);
+  const fukumen = safeParseJSON(localStorage.getItem('cfg_fukumen'), []);
+  const sukima = safeParseJSON(localStorage.getItem('cfg_sukima'), []);
+
+  const autoNonTax = sumDone(items);
+  const autoTaxable = sumDone(poikatsu) + sumDone(fukumen) + sumDone(sukima);
+  const hasData = (autoNonTax + autoTaxable) > 0;
+
+  const taxableEl = document.getElementById('taxable');
+  const nontaxEl = document.getElementById('nontax');
+  const autoloadTag = document.getElementById('autoloadTag');
+  const ledeText = document.getElementById('ledeText');
+
+  if (hasData) {
+    taxableEl.value = autoTaxable;
+    nontaxEl.value = autoNonTax;
+  } else {
+    autoloadTag.textContent = '✏️ まだ記録がないので、例の数字を入れています';
+    autoloadTag.classList.add('empty');
+    ledeText.textContent = '進捗管理ツールにまだ記録がないようです。下の金額を直接書き換えて試せます。';
+    taxableEl.value = 150000;
+    nontaxEl.value = 0;
+  }
+
+  const meterFill = document.getElementById('meterFill');
+  const meterFig = document.getElementById('meterFig');
+  const pill = document.getElementById('pill');
+  const pillText = document.getElementById('pillText');
+  const statusText = document.getElementById('statusText');
+  const incomeTaxRow = document.getElementById('incomeTaxRow');
+  const residentTaxRow = document.getElementById('residentTaxRow');
+  const takeHomeEl = document.getElementById('takeHome');
+
+  const THRESHOLD = 200000;
+  const yen = n => '¥' + Math.round(n).toLocaleString('ja-JP');
+  const num = n => Math.round(n).toLocaleString('ja-JP');
+  const clampNonNeg = v => { const n = parseFloat(v); return (isNaN(n) || n < 0) ? 0 : n; };
+
+  function update() {
+    const taxable = clampNonNeg(taxableEl.value);
+    const over = taxable > THRESHOLD;
+    const pct = Math.min(100, (taxable / THRESHOLD) * 100);
+
+    meterFill.style.width = pct + '%';
+    meterFill.classList.toggle('over', over);
+    meterFig.textContent = num(taxable) + ' / 200,000円';
+
+    pill.classList.toggle('good', !over);
+    pill.classList.toggle('warn', over);
+    pillText.textContent = over ? '20万円を超えています' : '20万円以内です';
+    statusText.textContent = over
+      ? `20万円ラインを ${num(taxable - THRESHOLD)}円 超えています。`
+      : `20万円ラインまで あと ${num(THRESHOLD - taxable)}円 です。`;
+
+    incomeTaxRow.textContent = over ? '必要になります' : '原則不要';
+    incomeTaxRow.classList.toggle('warn', over);
+    incomeTaxRow.classList.toggle('good', !over);
+
+    const residentTax = taxable * 0.10;
+    residentTaxRow.textContent = yen(residentTax);
+    takeHomeEl.textContent = num(taxable - residentTax);
+  }
+
+  taxableEl.addEventListener('input', update);
+  nontaxEl.addEventListener('input', update);
+  update();
+</script>
+</body>
+</html>
