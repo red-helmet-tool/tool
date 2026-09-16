@@ -53,6 +53,29 @@
       border-radius: 10px;
     }
 
+    .home-guide {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 16px;
+      font-size: 12px;
+      color: #92400e;
+    }
+    .home-guide summary {
+      font-weight: 700;
+      cursor: pointer;
+      list-style: none;
+    }
+    .home-guide summary::-webkit-details-marker { display: none; }
+    .home-guide summary::before { content: "▶ "; font-size: 10px; }
+    .home-guide[open] summary::before { content: "▼ "; }
+    .home-guide-body { margin-top: 10px; }
+    .home-guide-body h4 { font-size: 12px; margin: 10px 0 4px; color: #78350f; }
+    .home-guide-body ol { padding-left: 18px; margin: 0 0 6px; }
+    .home-guide-body li { margin-bottom: 2px; }
+    .home-guide-body .note-small { font-size: 11px; color: #92400e; margin-top: 8px; line-height: 1.6; }
+
     .card {
       background: var(--card-bg);
       border-radius: 16px;
@@ -232,6 +255,29 @@
     .memo-area { width: 100%; height: 80px; padding: 8px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; }
 
     .footer-note { text-align: center; font-size: 11px; color: var(--text-muted); margin-top: 16px; }
+
+    .tax-promo {
+      background: linear-gradient(135deg, #eff6ff, #f0f9ff);
+      border: 1px solid #bfdbfe;
+    }
+    .tax-promo .section-title { margin-bottom: 4px; }
+    .tax-promo .tax-promo-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+    .btn-tax-link {
+      display: block;
+      text-align: center;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 700;
+      font-size: 13.5px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      text-decoration: none;
+    }
   </style>
 </head>
 <body>
@@ -240,41 +286,18 @@
     <h1>資金作成・進捗管理ツール</h1>
   </div>
 
-  <div class="guide-box">
-    <div class="guide-title">💡 かんたん使い方</div>
-    <ul class="guide-steps">
-      <li><span class="step-badge">1</span> 目標日と目標額をセット</li>
-      <li><span class="step-badge">2</span> 各タスクが完了したらボタンをタップ！</li>
-      <li><span class="step-badge">3</span> 間違えた時は「⟲ ひとつ前に戻す」でいつでも修復可能</li>
-    </ul>
-  </div>
-
-  <!-- 元に戻す（Undo）ボタン -->
-  <button class="btn-undo" onclick="undoState()">⟲ ひとつ前に戻す（操作の取り消し）</button>
-
-  <!-- バックアップ（エクスポート／インポート） -->
-  <div class="card" style="padding:12px;">
-    <div class="section-title" style="margin-bottom:8px;">💾 データのバックアップ</div>
-    <div class="btn-group" style="width:100%;">
-      <button class="btn-toggle" style="flex:1;" onclick="exportData()">📤 バックアップを保存</button>
-      <button class="btn-toggle" style="flex:1;" onclick="document.getElementById('importFile').click()">📥 バックアップを読み込む</button>
-    </div>
-    <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importData(event)">
-    <div class="footer-note" style="margin-top:8px; text-align:left;">※このツールのデータは端末内のみに保存されています。機種変更やブラウザのデータ削除で消えるため、時々「バックアップを保存」で書き出しておくことをおすすめします。</div>
-  </div>
-
-  <!-- カウントダウン -->
+  <!-- カウントダウン（一目でわかる：日数） -->
   <div class="card countdown-box">
     <div class="countdown-title">🎯 目標日（期日）まで</div>
     <div class="countdown-days" id="countdownDays">--<span>日</span></div>
-    
+
     <div class="setting-row">
       <label>目標日（期日）:</label>
       <input type="date" id="targetDate" onchange="initTracker()">
     </div>
   </div>
 
-  <!-- 進捗サマリー -->
+  <!-- 進捗サマリー（一目でわかる：金額） -->
   <div class="card">
     <div class="purpose-input-box">
       <input type="text" id="purposeTitle" value="遠征・目的費用" placeholder="👆 タップして目的を入力" onchange="saveCurrentState(); savePurpose();">
@@ -284,18 +307,14 @@
       <div class="amount-label">現在の獲得・達成総額</div>
       <div class="amount-value" id="currentAmount">¥0</div>
     </div>
-    
+
     <div class="progress-bar-bg">
       <div class="progress-bar-fill" id="progressFill"></div>
     </div>
-    
+
     <div class="progress-info">
       <span>達成率: <strong id="progressPercent" style="color: var(--primary);">0%</strong></span>
       <span>残り必要額: <strong id="remainingAmount">¥0</strong></span>
-    </div>
-
-    <div style="text-align:center; margin-top:10px;">
-      <a href="./tax.html" style="font-size:12px; color: var(--primary); font-weight:700; text-decoration:none;">🧮 この実績の手取り・税金を計算する →</a>
     </div>
 
     <div class="target-setting">
@@ -305,6 +324,58 @@
       </div>
     </div>
   </div>
+
+  <!-- 元に戻す（Undo）ボタン -->
+  <button class="btn-undo" onclick="undoState()">⟲ ひとつ前に戻す（操作の取り消し）</button>
+
+  <!-- ここから下は毎回読まなくていい内容（折りたたみ） -->
+  <details class="home-guide">
+    <summary>📖 使い方・ホーム画面への追加方法</summary>
+    <div class="home-guide-body">
+      <h4>かんたん使い方</h4>
+      <ol>
+        <li>目標日と目標額をセット</li>
+        <li>各タスクが完了したらボタンをタップ！</li>
+        <li>間違えた時は「⟲ ひとつ前に戻す」でいつでも修復可能</li>
+      </ol>
+
+      <h4>ホーム画面への追加（推奨）</h4>
+      このツールはブラウザに記録が保存されるタイプです。LINEアプリの中のブラウザのまま使うと、機種によっては記録が消えてしまうことがあるため、最初に1回だけ「ホーム画面に追加」しておくと安心です。
+
+      <h4>iPhoneをお使いの方</h4>
+      <ol>
+        <li>画面<b>下部</b>のツールバー右端にある「⋮」（縦三点リーダー）をタップ</li>
+        <li>「デフォルトのブラウザで開く」（機種により「ブラウザで開く」と表示される場合もあります）を選ぶと、Safariが開きます</li>
+        <li>Safari画面下の共有マーク（□に↑）をタップ</li>
+        <li>メニューから「ホーム画面に追加」を選ぶ</li>
+        <li>右上の「追加」を押すと完了。次回からはホーム画面のアイコンから開いてください</li>
+      </ol>
+
+      <h4>Androidをお使いの方</h4>
+      <ol>
+        <li>画面<b>下部</b>のツールバー右端にある「⋮」（縦三点リーダー）をタップ</li>
+        <li>「デフォルトのブラウザで開く」（機種により「ブラウザで開く」と表示される場合もあります）を選ぶと、Chromeなどが開きます</li>
+        <li>開いたブラウザのメニュー（⋮）から「ホーム画面に追加」または「アプリをインストール」を選ぶ</li>
+        <li>追加が完了すると、ホーム画面にアイコンができます。次回からはこのアイコンから開いてください</li>
+      </ol>
+
+      <div class="note-small">※うまくいかない場合や不安な方は、LINEのまま使っていただいても大丈夫です。ただし機種変更やアプリの再インストール時に記録が消える可能性があるので、下の「データのバックアップ」から定期的にデータを保存しておくことをおすすめします。</div>
+    </div>
+  </details>
+
+  <!-- バックアップ（エクスポート／インポート・折りたたみ） -->
+  <details class="home-guide">
+    <summary>💾 データのバックアップ</summary>
+    <div class="home-guide-body">
+      <div class="btn-group" style="width:100%; margin-top:4px;">
+        <button class="btn-toggle" style="flex:1;" onclick="exportData()">📤 バックアップを保存</button>
+        <button class="btn-toggle" style="flex:1;" onclick="document.getElementById('importFile').click()">📥 バックアップを読み込む</button>
+      </div>
+      <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importData(event)">
+      <div class="note-small" style="margin-top:10px;">※このツールのデータは端末内のみに保存されています。機種変更やブラウザのデータ削除で消えるため、時々「バックアップを保存」で書き出しておくことをおすすめします。</div>
+      <div class="note-small" style="margin-top:6px;">※保存先：iPhone（Safari）は「ファイル」アプリの「このiPhone内」または「iCloud Drive」内の「ダウンロード」フォルダ。Android（Chrome）は「ダウンロード」フォルダに保存されます。保存直後に出る通知やアイコンからも開けます。</div>
+    </div>
+  </details>
 
   <!-- 1. 📦 不用品整理・出品リスト -->
   <div class="card">
@@ -383,6 +454,13 @@
     <div class="section-title">📊 月別実績・推移グラフ (自動集計)</div>
     <canvas id="monthlyChart" style="max-height: 180px; margin-bottom: 12px;"></canvas>
     <div id="monthlyInputs"></div>
+  </div>
+
+  <!-- 税金・手取りシミュレーターへの導線 -->
+  <div class="card tax-promo">
+    <div class="section-title"><span>🧮 手取り・税金を計算する</span></div>
+    <div class="tax-promo-desc">今の実績のうち、税金の対象になる金額はいくらか、住民税の申告が必要かどうかを自動でチェックできます。上の実績データをそのまま読み込むので、入力し直す必要はありません。</div>
+    <a href="./tax.html" class="btn-tax-link">今の実績で計算してみる →</a>
   </div>
 
   <!-- メモ -->
