@@ -1,844 +1,342 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>資金作成・進捗管理ツール</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    :root {
-      --bg: #f8fafc;
-      --card-bg: #ffffff;
-      --primary: #2563eb;
-      --text: #0f172a;
-      --text-muted: #64748b;
-      --border: #cbd5e1;
-      --success: #10b981;
-      --danger: #ef4444;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>副業手取りシミュレーター</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #faf9f6;
+    --card: #ffffff;
+    --line: #e6e2d8;
+    --ink: #1c2420;
+    --ink-soft: #5c6560;
+    --accent: #0d8f82;
+    --accent-soft: #e2f5f1;
+    --accent-soft-line: #bfe6df;
+    --good: #1a8a4a;
+    --good-soft: #e5f5eb;
+    --warn: #c2560c;
+    --warn-soft: #fbe9dd;
+    --muted-soft: #f1efe9;
+    --shadow: 0 1px 2px rgba(28,36,32,0.04), 0 8px 24px -12px rgba(28,36,32,0.12);
+    --radius: 18px;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Noto Sans JP", "Hiragino Sans", sans-serif;
+    padding: 16px 16px 40px;
+    display: flex;
+    justify-content: center;
+  }
+  main { width: 100%; max-width: 480px; }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+  .topnav { margin-bottom: 14px; }
+  .topnav a {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    text-decoration: none;
+    font-weight: 700;
+  }
+  .topnav a:hover { color: var(--accent); }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
-      line-height: 1.5;
-      padding: 16px;
-      max-width: 500px;
-      margin: 0 auto;
-    }
+  .eyebrow {
+    font-family: "Zen Kaku Gothic New", sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    margin: 0 0 6px;
+  }
+  h1 {
+    font-family: "Zen Kaku Gothic New", sans-serif;
+    font-weight: 900;
+    font-size: 25px;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    margin: 0 0 10px;
+  }
+  .lede { color: var(--ink-soft); font-size: 14px; line-height: 1.7; margin: 0 0 20px; }
 
-    .header { text-align: center; margin-bottom: 12px; }
-    .header h1 { font-size: 18px; font-weight: 700; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
 
-    .guide-box {
-      background: #eff6ff;
-      border: 1px solid #bfdbfe;
-      border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 16px;
-      font-size: 12px;
-      color: #1e40af;
-    }
-    .guide-title { font-weight: 700; margin-bottom: 6px; }
-    .guide-steps { list-style: none; padding: 0; }
-    .guide-steps li { margin-bottom: 3px; display: flex; align-items: center; gap: 6px; }
-    .step-badge {
-      background: var(--primary);
-      color: white;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 1px 6px;
-      border-radius: 10px;
-    }
+  .autoload-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-soft-line);
+    padding: 4px 10px;
+    border-radius: 999px;
+    margin-bottom: 12px;
+  }
+  .autoload-tag.empty { color: var(--ink-soft); background: var(--muted-soft); border-color: var(--line); }
 
-    .home-guide {
-      background: #fffbeb;
-      border: 1px solid #fde68a;
-      border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 16px;
-      font-size: 12px;
-      color: #92400e;
-    }
-    .home-guide summary {
-      font-weight: 700;
-      cursor: pointer;
-      list-style: none;
-    }
-    .home-guide summary::-webkit-details-marker { display: none; }
-    .home-guide summary::before { content: "▶ "; font-size: 10px; }
-    .home-guide[open] summary::before { content: "▼ "; }
-    .home-guide-body { margin-top: 10px; }
-    .home-guide-body h4 { font-size: 12px; margin: 10px 0 4px; color: #78350f; }
-    .home-guide-body ol { padding-left: 18px; margin: 0 0 6px; }
-    .home-guide-body li { margin-bottom: 2px; }
-    .home-guide-body .note-small { font-size: 11px; color: #92400e; margin-top: 8px; line-height: 1.6; }
+  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 0; }
+  .field-label { font-weight: 700; font-size: 13.5px; margin-bottom: 3px; display: flex; justify-content: space-between; align-items: baseline; }
+  .field-label .src { font-size: 11px; font-weight: 500; color: var(--ink-soft); }
+  .field-help { font-size: 12px; color: var(--ink-soft); line-height: 1.6; margin-bottom: 8px; }
+  .amount-row {
+    display: flex; align-items: baseline; gap: 6px;
+    border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 14px;
+    background: var(--paper); transition: border-color .15s ease;
+  }
+  .amount-row:focus-within { border-color: var(--accent); }
+  .amount-row .yen { font-size: 14px; color: var(--ink-soft); font-weight: 500; }
+  .amount-row input {
+    flex: 1; min-width: 0; border: none; background: transparent; outline: none;
+    font-family: "Zen Kaku Gothic New", sans-serif; font-weight: 700; font-size: 20px;
+    color: var(--ink); font-variant-numeric: tabular-nums; -moz-appearance: textfield;
+  }
+  .amount-row input::-webkit-outer-spin-button, .amount-row input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .amount-row .unit { font-size: 13px; color: var(--ink-soft); }
+  .amount-row.nontax input { color: var(--ink-soft); }
 
-    .card {
-      background: var(--card-bg);
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 16px;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-      border: 1px solid var(--border);
-    }
+  .split-note {
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--line);
+  }
 
-    .countdown-box {
-      background: linear-gradient(135deg, #1e293b, #0f172a);
-      color: #ffffff;
-      text-align: center;
-      border: none;
-    }
-    .countdown-title { font-size: 13px; color: #94a3b8; margin-bottom: 4px; }
-    .countdown-days { font-size: 36px; font-weight: 800; color: #38bdf8; line-height: 1.2; }
-    .countdown-days span { font-size: 16px; font-weight: 400; color: #ffffff; margin-left: 4px; }
-    
-    .setting-row {
-      margin-top: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      font-size: 13px;
-      color: #cbd5e1;
-    }
-    .setting-row input {
-      background: #334155;
-      border: 1px solid #475569;
-      color: #ffffff;
-      padding: 6px 10px;
-      border-radius: 6px;
-      font-size: 13px;
-    }
+  .meter-card { padding: 20px 20px 18px; }
+  .meter-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+  .meter-title { font-weight: 700; font-size: 14px; }
+  .meter-fig { font-family: "Zen Kaku Gothic New", sans-serif; font-weight: 900; font-size: 14px; font-variant-numeric: tabular-nums; }
+  .meter-track { position: relative; height: 14px; border-radius: 999px; background: var(--accent-soft); border: 1px solid var(--accent-soft-line); overflow: hidden; }
+  .meter-fill { position: absolute; inset: 0 auto 0 0; width: 0%; background: var(--accent); border-radius: 999px 0 0 999px; transition: width .35s ease; }
+  .meter-fill.over { background: var(--warn); }
+  .meter-scale { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-soft); margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .meter-status { margin-top: 14px; font-size: 13.5px; line-height: 1.6; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: "Zen Kaku Gothic New", sans-serif; font-weight: 700; font-size: 12.5px;
+    padding: 5px 12px; border-radius: 999px; margin-bottom: 8px;
+  }
+  .pill.good { background: var(--good-soft); color: var(--good); }
+  .pill.warn { background: var(--warn-soft); color: var(--warn); }
+  .pill .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 
-    .purpose-input-box { margin-bottom: 12px; text-align: center; }
-    .purpose-input-box input {
-      width: 90%;
-      text-align: center;
-      font-size: 15px;
-      font-weight: 700;
-      padding: 8px 10px;
-      border: 2px dashed var(--primary);
-      border-radius: 8px;
-      background: #f0f7ff;
-      color: var(--primary);
-    }
+  .rows { display: flex; flex-direction: column; }
+  .row { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 14px 0; border-top: 1px solid var(--line); }
+  .row:first-child { border-top: none; padding-top: 0; }
+  .row-label { font-size: 13.5px; font-weight: 500; color: var(--ink-soft); max-width: 62%; line-height: 1.5; }
+  .row-label b { color: var(--ink); font-weight: 700; }
+  .row-value { font-family: "Zen Kaku Gothic New", sans-serif; font-weight: 700; font-size: 14px; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .row-value.good { color: var(--good); }
+  .row-value.warn { color: var(--warn); }
 
-    .amount-display { text-align: center; margin-bottom: 12px; }
-    .amount-label { font-size: 12px; color: var(--text-muted); }
-    .amount-value { font-size: 32px; font-weight: 800; color: var(--primary); }
-    
-    .progress-bar-bg {
-      background: #e2e8f0;
-      height: 12px;
-      border-radius: 6px;
-      overflow: hidden;
-      margin-bottom: 8px;
-    }
-    .progress-bar-fill {
-      background: linear-gradient(90deg, var(--primary), #3b82f6);
-      height: 100%;
-      width: 0%;
-      transition: width 0.4s ease;
-    }
-    .progress-info {
-      display: flex;
-      justify-content: space-between;
-      font-size: 13px;
-      color: var(--text-muted);
-    }
+  .result-card { padding: 4px 20px 6px; }
+  .headline-stat { text-align: center; padding: 20px 0 16px; }
+  .headline-stat .label { font-size: 13px; color: var(--ink-soft); margin-bottom: 6px; }
+  .headline-stat .value { font-family: "Zen Kaku Gothic New", sans-serif; font-weight: 900; font-size: 38px; letter-spacing: -0.01em; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .headline-stat .value small { font-size: 17px; font-weight: 700; margin-left: 2px; }
+  .headline-stat .sub { font-size: 12px; color: var(--ink-soft); margin-top: 4px; }
 
-    .target-setting {
-      margin-top: 16px;
-      padding-top: 16px;
-      border-top: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 13px;
-    }
-    .target-setting input {
-      width: 120px;
-      padding: 6px 8px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      text-align: right;
-      font-size: 14px;
-      font-weight: 600;
-      background: #fafafa;
-    }
+  .note { font-size: 12px; line-height: 1.7; color: var(--ink-soft); background: var(--paper); border: 1px dashed var(--line); border-radius: 12px; padding: 14px 16px; }
+  .note b { color: var(--ink); }
+  .note + .note { margin-top: 10px; }
 
-    /* 共通セクションタイトル・ボタン配置調整 */
-    .section-title {
-      font-size: 14px;
-      font-weight: 700;
-      margin-bottom: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .btn-group { display: flex; gap: 6px; align-items: center; }
-    
-    .btn-add {
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 12px;
-      cursor: pointer;
-    }
-    .btn-toggle {
-      background: #e2e8f0;
-      color: #475569;
-      border: none;
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 12px;
-      cursor: pointer;
-      font-weight: 600;
-    }
-    .btn-undo {
-      background: #f1f5f9;
-      color: #475569;
-      border: 1px solid var(--border);
-      padding: 6px 12px;
-      border-radius: 8px;
-      font-size: 12px;
-      cursor: pointer;
-      font-weight: 600;
-      width: 100%;
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-    }
+  .promo-card { background: var(--accent-soft); border-color: var(--accent-soft-line); }
+  .promo-badge {
+    display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.05em;
+    color: #fff; background: var(--ink-soft); padding: 2px 7px; border-radius: 4px; margin-bottom: 10px;
+  }
+  .promo-title { font-family: "Zen Kaku Gothic New", sans-serif; font-weight: 700; font-size: 14.5px; margin: 0 0 6px; }
+  .promo-body { font-size: 12.5px; color: var(--ink-soft); line-height: 1.65; margin: 0 0 14px; }
+  .promo-link {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-weight: 700; font-size: 13.5px; color: var(--accent); text-decoration: none;
+  }
+  .promo-link:hover { text-decoration: underline; }
 
-    /* 共通リスト行スタイル */
-    .list-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .row-name { flex: 1; padding: 6px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; }
-    .row-val { width: 70px; padding: 6px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; text-align: right; }
-    
-    .btn-status {
-      padding: 6px 10px;
-      border: none;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
-      min-width: 70px;
-    }
-    .btn-status.off { background: #e2e8f0; color: #475569; }
-    .btn-status.on { background: var(--success); color: white; }
-    .btn-del { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px; }
-
-    .summary-row {
-      margin-top: 10px;
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    .monthly-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 13px; }
-    .monthly-row input { width: 100px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 4px; text-align: right; }
-
-    .memo-area { width: 100%; height: 80px; padding: 8px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; }
-
-    .footer-note { text-align: center; font-size: 11px; color: var(--text-muted); margin-top: 16px; }
-
-    .tax-promo {
-      background: linear-gradient(135deg, #eff6ff, #f0f9ff);
-      border: 1px solid #bfdbfe;
-    }
-    .tax-promo .section-title { margin-bottom: 4px; }
-    .tax-promo .tax-promo-desc {
-      font-size: 12px;
-      color: var(--text-muted);
-      line-height: 1.6;
-      margin-bottom: 12px;
-    }
-    .btn-tax-link {
-      display: block;
-      text-align: center;
-      background: var(--primary);
-      color: #fff;
-      font-weight: 700;
-      font-size: 13.5px;
-      padding: 10px 12px;
-      border-radius: 10px;
-      text-decoration: none;
-    }
-  </style>
+  footer { text-align: center; font-size: 12px; color: var(--ink-soft); margin-top: 22px; line-height: 1.7; }
+  footer .brand { font-weight: 700; color: var(--ink); }
+</style>
 </head>
 <body>
+<main>
+  <div class="topnav"><a href="./index.html">← 資金作成・進捗管理ツールに戻る</a></div>
+  <p class="eyebrow">カプおじの資金作成ツール</p>
+  <h1>副業・ポイ活の手取り計算</h1>
+  <p class="lede" id="ledeText">進捗管理ツールの記録を自動で読み込んで計算します。金額はいつでも書き換えられます。</p>
 
-  <div class="header">
-    <h1>資金作成・進捗管理ツール</h1>
-  </div>
-
-  <!-- カウントダウン（一目でわかる：日数） -->
-  <div class="card countdown-box">
-    <div class="countdown-title">🎯 目標日（期日）まで</div>
-    <div class="countdown-days" id="countdownDays">--<span>日</span></div>
-
-    <div class="setting-row">
-      <label>目標日（期日）:</label>
-      <input type="date" id="targetDate" onchange="initTracker()">
-    </div>
-  </div>
-
-  <!-- 進捗サマリー（一目でわかる：金額） -->
   <div class="card">
-    <div class="purpose-input-box">
-      <input type="text" id="purposeTitle" value="遠征・目的費用" placeholder="👆 タップして目的を入力" onchange="saveCurrentState(); savePurpose();">
+    <span class="autoload-tag" id="autoloadTag">📥 進捗ツールのデータを読み込みました</span>
+
+    <div class="field">
+      <div class="field-label"><span>課税対象の雑所得</span><span class="src">ポイ活・覆面調査・スキマバイト</span></div>
+      <p class="field-help">進捗管理ツールで「完了」にした、ポイ活・覆面調査・スキマバイトの合計額です。この部分が税金の対象になります。</p>
+      <div class="amount-row">
+        <span class="yen">¥</span>
+        <input id="taxable" type="number" inputmode="numeric" min="0" step="1000" value="0">
+        <span class="unit">円 / 年</span>
+      </div>
     </div>
 
-    <div class="amount-display">
-      <div class="amount-label">現在の獲得・達成総額</div>
-      <div class="amount-value" id="currentAmount">¥0</div>
+    <div class="field">
+      <div class="field-label"><span>非課税（参考）</span><span class="src">不用品整理・出品</span></div>
+      <p class="field-help">生活で使っていた不用品の売却は、原則として税金がかかりません（高額な貴金属・美術品などは除く）。そのため下の計算には含めていません。</p>
+      <div class="amount-row nontax">
+        <span class="yen">¥</span>
+        <input id="nontax" type="number" inputmode="numeric" min="0" step="1000" value="0">
+        <span class="unit">円 / 年</span>
+      </div>
     </div>
 
-    <div class="progress-bar-bg">
-      <div class="progress-bar-fill" id="progressFill"></div>
-    </div>
+    <div class="split-note">進捗管理ツールの「完了」項目から自動計算しています。実際の金額と違う場合は、上の欄を直接書き換えてください。スキマバイトが給与扱いで源泉徴収されている場合は、その分すでに天引き済みです。</div>
+  </div>
 
-    <div class="progress-info">
-      <span>達成率: <strong id="progressPercent" style="color: var(--primary);">0%</strong></span>
-      <span>残り必要額: <strong id="remainingAmount">¥0</strong></span>
+  <div class="card meter-card">
+    <div class="meter-top">
+      <span class="meter-title">20万円ラインまで</span>
+      <span class="meter-fig" id="meterFig">0 / 200,000円</span>
     </div>
+    <div class="meter-track"><div class="meter-fill" id="meterFill"></div></div>
+    <div class="meter-scale"><span>0円</span><span>20万円</span></div>
+    <div class="meter-status">
+      <div id="pill" class="pill good"><span class="dot"></span><span id="pillText">20万円以内です</span></div>
+      <div id="statusText"></div>
+    </div>
+  </div>
 
-    <div class="target-setting">
-      <span>目標達成額：</span>
-      <div>
-        <input type="number" id="targetAmount" value="50000" step="1000" min="1" onchange="saveCurrentState(); updateAll();"> 円
+  <div class="card result-card">
+    <div class="headline-stat">
+      <div class="label">概算の手取り</div>
+      <div class="value">¥<span id="takeHome">0</span><small>/ 年</small></div>
+      <div class="sub">課税対象の雑所得から、住民税の概算を差し引いた金額です</div>
+    </div>
+    <div class="rows">
+      <div class="row">
+        <div class="row-label"><b>所得税</b>の確定申告</div>
+        <div class="row-value" id="incomeTaxRow">原則不要</div>
+      </div>
+      <div class="row">
+        <div class="row-label"><b>住民税</b>の申告</div>
+        <div class="row-value warn">必要です</div>
+      </div>
+      <div class="row">
+        <div class="row-label">住民税の概算<br><span style="font-size:11.5px">（雑所得の約10%が目安）</span></div>
+        <div class="row-value" id="residentTaxRow">¥0</div>
       </div>
     </div>
   </div>
 
-  <!-- 元に戻す（Undo）ボタン -->
-  <button class="btn-undo" onclick="undoState()">⟲ ひとつ前に戻す（操作の取り消し）</button>
-
-  <!-- ここから下は毎回読まなくていい内容（折りたたみ） -->
-  <details class="home-guide">
-    <summary>📖 使い方・ホーム画面への追加方法</summary>
-    <div class="home-guide-body">
-      <h4>かんたん使い方</h4>
-      <ol>
-        <li>目標日と目標額をセット</li>
-        <li>各タスクが完了したらボタンをタップ！</li>
-        <li>間違えた時は「⟲ ひとつ前に戻す」でいつでも修復可能</li>
-      </ol>
-
-      <h4>ホーム画面への追加（推奨）</h4>
-      このツールはブラウザに記録が保存されるタイプです。LINEアプリの中のブラウザのまま使うと、機種によっては記録が消えてしまうことがあるため、最初に1回だけ「ホーム画面に追加」しておくと安心です。
-
-      <h4>iPhoneをお使いの方</h4>
-      <ol>
-        <li>画面<b>下部</b>のツールバー右端にある「⋮」（縦三点リーダー）をタップ</li>
-        <li>「デフォルトのブラウザで開く」（機種により「ブラウザで開く」と表示される場合もあります）を選ぶと、Safariが開きます</li>
-        <li>Safari画面下の共有マーク（□に↑）をタップ</li>
-        <li>メニューから「ホーム画面に追加」を選ぶ</li>
-        <li>右上の「追加」を押すと完了。次回からはホーム画面のアイコンから開いてください</li>
-      </ol>
-
-      <h4>Androidをお使いの方</h4>
-      <ol>
-        <li>画面<b>下部</b>のツールバー右端にある「⋮」（縦三点リーダー）をタップ</li>
-        <li>「デフォルトのブラウザで開く」（機種により「ブラウザで開く」と表示される場合もあります）を選ぶと、Chromeなどが開きます</li>
-        <li>開いたブラウザのメニュー（⋮）から「ホーム画面に追加」または「アプリをインストール」を選ぶ</li>
-        <li>追加が完了すると、ホーム画面にアイコンができます。次回からはこのアイコンから開いてください</li>
-      </ol>
-
-      <div class="note-small">※うまくいかない場合や不安な方は、LINEのまま使っていただいても大丈夫です。ただし機種変更やアプリの再インストール時に記録が消える可能性があるので、下の「データのバックアップ」から定期的にデータを保存しておくことをおすすめします。</div>
-    </div>
-  </details>
-
-  <!-- バックアップ（エクスポート／インポート・折りたたみ） -->
-  <details class="home-guide">
-    <summary>💾 データのバックアップ</summary>
-    <div class="home-guide-body">
-      <div class="btn-group" style="width:100%; margin-top:4px;">
-        <button class="btn-toggle" style="flex:1;" onclick="exportData()">📤 バックアップを保存</button>
-        <button class="btn-toggle" style="flex:1;" onclick="document.getElementById('importFile').click()">📥 バックアップを読み込む</button>
-      </div>
-      <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importData(event)">
-      <div class="note-small" style="margin-top:10px;">※このツールのデータは端末内のみに保存されています。機種変更やブラウザのデータ削除で消えるため、時々「バックアップを保存」で書き出しておくことをおすすめします。</div>
-      <div class="note-small" style="margin-top:6px;">※保存先：iPhone（Safari）は「ファイル」アプリの「このiPhone内」または「iCloud Drive」内の「ダウンロード」フォルダ。Android（Chrome）は「ダウンロード」フォルダに保存されます。保存直後に出る通知やアイコンからも開けます。</div>
-    </div>
-  </details>
-
-  <!-- 1. 📦 不用品整理・出品リスト -->
-  <div class="card">
-    <div class="section-title">
-      <span>📦 不用品整理・出品リスト</span>
-      <div class="btn-group">
-        <button class="btn-toggle" id="btnToggle_items" onclick="toggleSection('items')">▲ たたむ</button>
-        <button class="btn-add" id="btnAdd_items" onclick="addItem('items')">+ 追加</button>
-      </div>
-    </div>
-    <div id="container_items">
-      <div id="list_items"></div>
-    </div>
-    <div class="summary-row">
-      <span>出品中（未決済）の予定額:</span>
-      <span id="sum_items" style="color: var(--text-muted);">¥0</span>
-    </div>
+  <div class="card promo-card">
+    <span class="promo-badge">PR</span>
+    <p class="promo-title">住民税の申告、何を使えばいい？</p>
+    <p class="promo-body">税金の専門知識がなくても、質問に答えて入力するだけで申告書類まで作れます。カプおじも実際にこれで済ませています。</p>
+    <a href="https://px.a8.net/svt/ejp?a8mat=4BCCJL+B3HWGQ+4JGQ+BYT9E" rel="nofollow" class="promo-link">自動化で80%以上の時間削減 マネーフォワード クラウド確定申告 →</a>
+    <img border="0" width="1" height="1" src="https://www16.a8.net/0.gif?a8mat=4BCCJL+B3HWGQ+4JGQ+BYT9E" alt="">
   </div>
 
-  <!-- 2. 📌 ポイ活・口座開設 -->
-  <div class="card">
-    <div class="section-title">
-      <span>📌 ポイ活・口座開設</span>
-      <div class="btn-group">
-        <button class="btn-toggle" id="btnToggle_poikatsu" onclick="toggleSection('poikatsu')">▲ たたむ</button>
-        <button class="btn-add" id="btnAdd_poikatsu" onclick="addItem('poikatsu')">+ 追加</button>
-      </div>
-    </div>
-    <div id="container_poikatsu">
-      <div id="list_poikatsu"></div>
-    </div>
-    <div class="summary-row">
-      <span>未完了タスクの予定額:</span>
-      <span id="sum_poikatsu" style="color: var(--text-muted);">¥0</span>
-    </div>
-  </div>
+  <div class="note"><b>住民税は20万円以下でも申告が必要です。</b>「年間20万円以下なら申告不要」というルールは<b>所得税（国）</b>だけの特例で、<b>住民税（市区町村）</b>には適用されません。意外と知られていない点なので、ここだけは覚えておいてください。</div>
+  <div class="note">この計算はあくまで概算の目安です。正式な税務相談ではありません。金額が大きくなってきたら、税理士やお住まいの市区町村の窓口に確認してください。</div>
 
-  <!-- 3. 🕵️ 覆面調査 -->
-  <div class="card">
-    <div class="section-title">
-      <span>🕵️ 覆面調査</span>
-      <div class="btn-group">
-        <button class="btn-toggle" id="btnToggle_fukumen" onclick="toggleSection('fukumen')">▲ たたむ</button>
-        <button class="btn-add" id="btnAdd_fukumen" onclick="addItem('fukumen')">+ 追加</button>
-      </div>
-    </div>
-    <div id="container_fukumen">
-      <div id="list_fukumen"></div>
-    </div>
-    <div class="summary-row">
-      <span>未完了タスクの予定額:</span>
-      <span id="sum_fukumen" style="color: var(--text-muted);">¥0</span>
-    </div>
-  </div>
+  <footer>
+    <span class="brand">カプおじ</span> — ノーリスクな資金作成・ポイ活の記録<br>
+    20万円を超えてきたら、次のステップもLINEでご案内します。
+  </footer>
+</main>
 
-  <!-- 4. ⚡ スキマバイト -->
-  <div class="card">
-    <div class="section-title">
-      <span>⚡ スキマバイト</span>
-      <div class="btn-group">
-        <button class="btn-toggle" id="btnToggle_sukima" onclick="toggleSection('sukima')">▲ たたむ</button>
-        <button class="btn-add" id="btnAdd_sukima" onclick="addItem('sukima')">+ 追加</button>
-      </div>
-    </div>
-    <div id="container_sukima">
-      <div id="list_sukima"></div>
-    </div>
-    <div class="summary-row">
-      <span>未完了タスクの予定額:</span>
-      <span id="sum_sukima" style="color: var(--text-muted);">¥0</span>
-    </div>
-  </div>
+<script>
+  function safeParseJSON(str, fallback) {
+    if (!str) return fallback;
+    try { return JSON.parse(str); } catch (e) { return fallback; }
+  }
+  function sumDone(list) {
+    if (!Array.isArray(list)) return 0;
+    return list.reduce((t, i) => t + (i && i.done ? (parseInt(i.val) || 0) : 0), 0);
+  }
 
-  <!-- 月別実績 ＆ グラフ -->
-  <div class="card">
-    <div class="section-title">📊 月別実績・推移グラフ (自動集計)</div>
-    <canvas id="monthlyChart" style="max-height: 180px; margin-bottom: 12px;"></canvas>
-    <div id="monthlyInputs"></div>
-  </div>
+  // 進捗管理ツール（同じサイト内）の保存データを自動読み込み
+  const items = safeParseJSON(localStorage.getItem('cfg_items'), []);
+  const poikatsu = safeParseJSON(localStorage.getItem('cfg_poikatsu'), []);
+  const fukumen = safeParseJSON(localStorage.getItem('cfg_fukumen'), []);
+  const sukima = safeParseJSON(localStorage.getItem('cfg_sukima'), []);
 
-  <!-- 税金・手取りシミュレーターへの導線 -->
-  <div class="card tax-promo">
-    <div class="section-title"><span>🧮 手取り・税金を計算する</span></div>
-    <div class="tax-promo-desc">今の実績のうち、税金の対象になる金額はいくらか、住民税の申告が必要かどうかを自動でチェックできます。上の実績データをそのまま読み込むので、入力し直す必要はありません。</div>
-    <a href="./tax.html" class="btn-tax-link">今の実績で計算してみる →</a>
-  </div>
+  const autoNonTax = sumDone(items);
+  const autoTaxable = sumDone(poikatsu) + sumDone(fukumen) + sumDone(sukima);
+  const hasData = (autoNonTax + autoTaxable) > 0;
 
-  <!-- メモ -->
-  <div class="card">
-    <div class="section-title">📝 自由メモ欄</div>
-    <textarea class="memo-area" id="memoText" placeholder="メモ書きにご自由にお使いください。" onchange="saveCurrentState(); saveMemo();"></textarea>
-  </div>
+  const taxableEl = document.getElementById('taxable');
+  const nontaxEl = document.getElementById('nontax');
+  const autoloadTag = document.getElementById('autoloadTag');
+  const ledeText = document.getElementById('ledeText');
 
-  <div class="footer-note">
-    ※設定・実績は端末内に自動保存されます。<br>
-    ホーム画面に追加してアプリ感覚でご活用ください。
-  </div>
+  if (hasData) {
+    taxableEl.value = autoTaxable;
+    nontaxEl.value = autoNonTax;
+  } else {
+    autoloadTag.textContent = '✏️ まだ記録がないので、例の数字を入れています';
+    autoloadTag.classList.add('empty');
+    ledeText.textContent = '進捗管理ツールにまだ記録がないようです。下の金額を直接書き換えて試せます。';
+    taxableEl.value = 150000;
+    nontaxEl.value = 0;
+  }
 
-  <script>
-    let chartInstance = null;
-    let historyStack = [];
+  const meterFill = document.getElementById('meterFill');
+  const meterFig = document.getElementById('meterFig');
+  const pill = document.getElementById('pill');
+  const pillText = document.getElementById('pillText');
+  const statusText = document.getElementById('statusText');
+  const incomeTaxRow = document.getElementById('incomeTaxRow');
+  const residentTaxRow = document.getElementById('residentTaxRow');
+  const takeHomeEl = document.getElementById('takeHome');
 
-    // 各カテゴリデータ構造
-    let dataStore = {
-      items: [ { name: "着ない服・古着", val: 3000, done: false } ],
-      poikatsu: [ { name: "高還元カード発行", val: 12000, done: false } ],
-      fukumen: [ { name: "飲食店モニター調査", val: 5000, done: false } ],
-      sukima: [ { name: "単発イベントスタッフ", val: 8000, done: false } ]
-    };
+  const THRESHOLD = 200000;
+  const yen = n => '¥' + Math.round(n).toLocaleString('ja-JP');
+  const num = n => Math.round(n).toLocaleString('ja-JP');
+  const clampNonNeg = v => { const n = parseFloat(v); return (isNaN(n) || n < 0) ? 0 : n; };
 
-    let toggleState = { items: true, poikatsu: true, fukumen: true, sukima: true };
+  function update() {
+    const taxable = clampNonNeg(taxableEl.value);
+    const over = taxable > THRESHOLD;
+    const pct = Math.min(100, (taxable / THRESHOLD) * 100);
 
-    // 壊れた保存データを読み込んでも画面全体が止まらないようにする安全パーサー
-    function safeParseJSON(str, fallback) {
-      if (!str) return fallback;
-      try {
-        return JSON.parse(str);
-      } catch (e) {
-        console.warn('保存データの読み込みに失敗したため、初期値を使用します。', e);
-        return fallback;
-      }
-    }
+    meterFill.style.width = pct + '%';
+    meterFill.classList.toggle('over', over);
+    meterFig.textContent = num(taxable) + ' / 200,000円';
 
-    function getCurrentMonthKey() {
-      const now = new Date();
-      return `${now.getFullYear()}年${now.getMonth() + 1}月度`;
-    }
+    pill.classList.toggle('good', !over);
+    pill.classList.toggle('warn', over);
+    pillText.textContent = over ? '20万円を超えています' : '20万円以内です';
+    statusText.textContent = over
+      ? `20万円ラインを ${num(taxable - THRESHOLD)}円 超えています。`
+      : `20万円ラインまで あと ${num(THRESHOLD - taxable)}円 です。`;
 
-    // ひとつ前に戻す(Undo)用データ保持
-    function saveCurrentState() {
-      const state = {
-        dataStore: JSON.parse(JSON.stringify(dataStore)),
-        monthly: localStorage.getItem('cfg_monthly'),
-        targetAmount: document.getElementById('targetAmount').value,
-        purpose: document.getElementById('purposeTitle').value,
-        memo: document.getElementById('memoText').value
-      };
-      historyStack.push(state);
-      if (historyStack.length > 20) historyStack.shift(); // 最大20履歴
-    }
+    incomeTaxRow.textContent = over ? '必要になります' : '原則不要';
+    incomeTaxRow.classList.toggle('warn', over);
+    incomeTaxRow.classList.toggle('good', !over);
 
-    function undoState() {
-      if (historyStack.length === 0) {
-        alert("これ以上前に戻せる操作はありません。");
-        return;
-      }
-      const prev = historyStack.pop();
-      dataStore = prev.dataStore;
-      if (prev.monthly) localStorage.setItem('cfg_monthly', prev.monthly);
-      if (prev.targetAmount) document.getElementById('targetAmount').value = prev.targetAmount;
-      if (prev.purpose) document.getElementById('purposeTitle').value = prev.purpose;
-      if (prev.memo) document.getElementById('memoText').value = prev.memo;
+    const residentTax = taxable * 0.10;
+    residentTaxRow.textContent = yen(residentTax);
+    takeHomeEl.textContent = num(taxable - residentTax);
+  }
 
-      saveAllStores();
-      renderAllLists();
-      refreshMonthlyInputs();
-    }
-
-    window.onload = function() {
-      const savedDate = localStorage.getItem('cfg_target_date');
-      const dateInput = document.getElementById('targetDate');
-      if (savedDate) {
-        dateInput.value = savedDate;
-      } else {
-        const d = new Date();
-        d.setDate(d.getDate() + 90);
-        dateInput.value = d.toISOString().split('T')[0];
-      }
-
-      if (localStorage.getItem('cfg_purpose')) document.getElementById('purposeTitle').value = localStorage.getItem('cfg_purpose');
-      if (localStorage.getItem('cfg_target_amount')) document.getElementById('targetAmount').value = localStorage.getItem('cfg_target_amount');
-      if (localStorage.getItem('cfg_memo')) document.getElementById('memoText').value = localStorage.getItem('cfg_memo');
-
-      ['items', 'poikatsu', 'fukumen', 'sukima'].forEach(key => {
-        if (localStorage.getItem('cfg_' + key)) {
-          dataStore[key] = safeParseJSON(localStorage.getItem('cfg_' + key), dataStore[key]);
-        }
-      });
-
-      renderAllLists();
-      initTracker();
-    };
-
-    function savePurpose() { localStorage.setItem('cfg_purpose', document.getElementById('purposeTitle').value); }
-    function saveMemo() { localStorage.setItem('cfg_memo', document.getElementById('memoText').value); }
-
-    // 折りたたみ切り替え
-    function toggleSection(key) {
-      toggleState[key] = !toggleState[key];
-      const container = document.getElementById('container_' + key);
-      const btn = document.getElementById('btnToggle_' + key);
-
-      if (toggleState[key]) {
-        container.style.display = 'block';
-        btn.innerText = '▲ たたむ';
-      } else {
-        container.style.display = 'none';
-        btn.innerText = '▼ 開く';
-      }
-    }
-
-    // 各リスト共通描画
-    function renderList(key) {
-      const container = document.getElementById('list_' + key);
-      container.innerHTML = '';
-
-      dataStore[key].forEach((item, i) => {
-        const div = document.createElement('div');
-        div.className = 'list-row';
-        const labelText = key === 'items' ? '売れた！' : '達成！';
-        div.innerHTML = `
-          <input type="text" class="row-name" value="${item.name}" placeholder="項目名" onchange="saveCurrentState(); updateRowName('${key}', ${i}, this.value)">
-          <input type="number" class="row-val" value="${item.val}" placeholder="金額" min="0" onchange="saveCurrentState(); updateRowVal('${key}', ${i}, this.value)"> 円
-          <button class="btn-status ${item.done ? 'on' : 'off'}" onclick="saveCurrentState(); toggleRowStatus('${key}', ${i})">
-            ${item.done ? '✓ ' + labelText : '未完了'}
-          </button>
-          <button class="btn-del" onclick="saveCurrentState(); delRow('${key}', ${i})">✕</button>
-        `;
-        container.appendChild(div);
-      });
-
-      updateAll();
-    }
-
-    function renderAllLists() {
-      ['items', 'poikatsu', 'fukumen', 'sukima'].forEach(key => renderList(key));
-    }
-
-    function addItem(key) {
-      saveCurrentState();
-      dataStore[key].push({ name: "", val: 3000, done: false });
-      if (!toggleState[key]) toggleSection(key);
-      renderList(key);
-    }
-
-    function delRow(key, i) {
-      dataStore[key].splice(i, 1);
-      renderList(key);
-    }
-
-    function toggleRowStatus(key, i) {
-      const currentDone = dataStore[key][i].done;
-      dataStore[key][i].done = !currentDone;
-
-      const itemAmount = dataStore[key][i].val || 0;
-      const currentMonth = getCurrentMonthKey();
-      const savedMonthly = safeParseJSON(localStorage.getItem('cfg_monthly'), {});
-      let currentVal = parseInt(savedMonthly[currentMonth]) || 0;
-
-      if (!currentDone) {
-        savedMonthly[currentMonth] = currentVal + itemAmount;
-      } else {
-        savedMonthly[currentMonth] = Math.max(0, currentVal - itemAmount);
-      }
-
-      localStorage.setItem('cfg_monthly', JSON.stringify(savedMonthly));
-      renderList(key);
-      refreshMonthlyInputs();
-    }
-
-    function updateRowName(key, i, val) { dataStore[key][i].name = val; saveAllStores(); }
-    function updateRowVal(key, i, val) { dataStore[key][i].val = Math.max(0, parseInt(val) || 0); renderList(key); }
-    
-    // データのバックアップ書き出し（JSONファイルとして端末に保存）
-    function exportData() {
-      const backup = {
-        exportedAt: new Date().toISOString(),
-        targetDate: document.getElementById('targetDate').value,
-        targetAmount: document.getElementById('targetAmount').value,
-        purpose: document.getElementById('purposeTitle').value,
-        memo: document.getElementById('memoText').value,
-        dataStore: dataStore,
-        monthly: safeParseJSON(localStorage.getItem('cfg_monthly'), {})
-      };
-
-      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      const dateStr = new Date().toISOString().split('T')[0];
-      a.href = url;
-      a.download = `shikin-tool-backup-${dateStr}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
-
-    // バックアップファイルの読み込み（上書き前に確認あり）
-    function importData(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const backup = safeParseJSON(e.target.result, null);
-        if (!backup || !backup.dataStore) {
-          alert('このファイルは読み込めませんでした。バックアップ保存で書き出したJSONファイルを選んでください。');
-          event.target.value = '';
-          return;
-        }
-        if (!confirm('現在のデータを、このバックアップファイルの内容で上書きします。よろしいですか？')) {
-          event.target.value = '';
-          return;
-        }
-
-        saveCurrentState(); // 上書き前の状態もundoで戻せるようにしておく
-
-        ['items', 'poikatsu', 'fukumen', 'sukima'].forEach(key => {
-          if (Array.isArray(backup.dataStore[key])) dataStore[key] = backup.dataStore[key];
-        });
-        if (backup.targetDate) document.getElementById('targetDate').value = backup.targetDate;
-        if (backup.targetAmount) document.getElementById('targetAmount').value = backup.targetAmount;
-        if (backup.purpose) document.getElementById('purposeTitle').value = backup.purpose;
-        if (typeof backup.memo === 'string') document.getElementById('memoText').value = backup.memo;
-        if (backup.monthly) localStorage.setItem('cfg_monthly', JSON.stringify(backup.monthly));
-
-        savePurpose();
-        saveMemo();
-        saveAllStores();
-        renderAllLists();
-        initTracker();
-        alert('バックアップを読み込みました。');
-        event.target.value = '';
-      };
-      reader.readAsText(file);
-    }
-
-    function saveAllStores() {
-      ['items', 'poikatsu', 'fukumen', 'sukima'].forEach(key => {
-        localStorage.setItem('cfg_' + key, JSON.stringify(dataStore[key]));
-      });
-    }
-
-    function initTracker() {
-      const targetDateVal = document.getElementById('targetDate').value;
-      localStorage.setItem('cfg_target_date', targetDateVal);
-
-      if (!targetDateVal) return;
-
-      const targetDate = new Date(targetDateVal);
-      const today = new Date();
-
-      const diffTime = targetDate - today;
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      document.getElementById('countdownDays').innerHTML = (diffDays < 0 ? '終了' : diffDays) + '<span>日</span>';
-
-      const months = [];
-      let cur = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-      const end = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 1);
-
-      while (cur < end) {
-        const mKey = `${cur.getFullYear()}年${cur.getMonth() + 1}月度`;
-        months.push(mKey);
-        cur.setMonth(cur.getMonth() + 1);
-      }
-
-      window.activeMonths = months;
-      refreshMonthlyInputs();
-    }
-
-    function refreshMonthlyInputs() {
-      const container = document.getElementById('monthlyInputs');
-      if (!container || !window.activeMonths) return;
-      container.innerHTML = '';
-
-      const savedMonthly = safeParseJSON(localStorage.getItem('cfg_monthly'), {});
-
-      window.activeMonths.forEach(m => {
-        const val = savedMonthly[m] || 0;
-        const div = document.createElement('div');
-        div.className = 'monthly-row';
-        div.innerHTML = `
-          <span>${m}</span>
-          <div><input type="number" class="monthly-val" data-month="${m}" value="${val}" placeholder="0" min="0" onchange="saveCurrentState(); saveMonthly();"> 円</div>
-        `;
-        container.appendChild(div);
-      });
-
-      updateAll();
-    }
-
-    function saveMonthly() {
-      const inputs = document.querySelectorAll('.monthly-val');
-      const data = {};
-      inputs.forEach(input => {
-        data[input.getAttribute('data-month')] = Math.max(0, parseInt(input.value) || 0);
-      });
-      localStorage.setItem('cfg_monthly', JSON.stringify(data));
-      updateAll();
-    }
-
-    function updateAll() {
-      saveAllStores();
-      
-      const targetInput = document.getElementById('targetAmount');
-      const targetTotal = Math.max(1, parseInt(targetInput.value) || 1);
-      localStorage.setItem('cfg_target_amount', targetTotal);
-
-      // 未完了予定額小計
-      ['items', 'poikatsu', 'fukumen', 'sukima'].forEach(key => {
-        let unDoneTotal = 0;
-        dataStore[key].forEach(item => { if (!item.done) unDoneTotal += item.val; });
-        document.getElementById('sum_' + key).innerText = '¥' + unDoneTotal.toLocaleString();
-      });
-
-      // 達成実績総額
-      let monthlyTotal = 0;
-      const monthlyData = safeParseJSON(localStorage.getItem('cfg_monthly'), {});
-      Object.values(monthlyData).forEach(v => monthlyTotal += parseInt(v) || 0);
-
-      const currentTotal = monthlyTotal;
-
-      document.getElementById('currentAmount').innerText = '¥' + currentTotal.toLocaleString();
-      
-      const remaining = Math.max(0, targetTotal - currentTotal);
-      document.getElementById('remainingAmount').innerText = '¥' + remaining.toLocaleString();
-
-      const percentage = Math.min(Math.round((currentTotal / targetTotal) * 100), 100);
-      document.getElementById('progressFill').style.width = percentage + '%';
-      document.getElementById('progressPercent').innerText = percentage + '%';
-
-      renderChart(monthlyData);
-    }
-
-    function renderChart(monthlyData) {
-      // Chart.jsはCDN読み込みのため、通信環境によっては読み込みに失敗することがある。
-      // その場合でも他の機能（カウントダウン・進捗・金額集計）が止まらないよう、ここだけ影響を閉じ込める。
-      if (typeof Chart === 'undefined') {
-        console.warn('グラフ表示用ライブラリの読み込みに失敗したため、グラフは表示されません。他の機能には影響ありません。');
-        return;
-      }
-
-      try {
-        const ctx = document.getElementById('monthlyChart').getContext('2d');
-        const labels = window.activeMonths || Object.keys(monthlyData);
-        const values = labels.map(m => monthlyData[m] || 0);
-
-        if (chartInstance) chartInstance.destroy();
-
-        chartInstance = new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: labels,
-            datasets: [{
-              label: '月別獲得額 (円)',
-              data: values,
-              backgroundColor: '#2563eb',
-              borderRadius: 6
-            }]
-          },
-          options: {
-            responsive: true,
-            plugins: { legend: { display: false } },
-            scales: {
-              y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
-              x: { grid: { display: false } }
-            }
-          }
-        });
-      } catch (e) {
-        console.warn('グラフの描画中にエラーが発生しました。', e);
-      }
-    }
-  </script>
+  taxableEl.addEventListener('input', update);
+  nontaxEl.addEventListener('input', update);
+  update();
+</script>
 </body>
 </html>
