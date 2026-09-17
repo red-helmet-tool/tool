@@ -582,7 +582,17 @@
       const container = document.getElementById('list_' + key);
       container.innerHTML = '';
 
-      dataStore[key].forEach((item, i) => {
+      // 完了したタスクは表示上だけ下に移動する（データの並び順・indexは変更しない）
+      const order = dataStore[key]
+        .map((item, i) => i)
+        .sort((a, b) => {
+          const da = dataStore[key][a].done ? 1 : 0;
+          const db = dataStore[key][b].done ? 1 : 0;
+          return da - db;
+        });
+
+      order.forEach(i => {
+        const item = dataStore[key][i];
         const div = document.createElement('div');
         div.className = 'list-row';
         const labelText = key === 'items' ? '売れた！' : '達成！';
