@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>アプリ・サイト厳選リスト｜コード一覧</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&amp;family=Noto+Sans+JP:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #faf9f6;
+    --card: #ffffff;
+    --line: #e6e2d8;
+    --ink: #1c2420;
+    --ink-soft: #5c6560;
+    --accent: #0d8f82;
+    --accent-soft: #e2f5f1;
+    --accent-soft-line: #bfe6df;
+    --good: #1a8a4a;
+    --good-soft: #e5f5eb;
+    --warn: #c2560c;
+    --warn-soft: #fbe9dd;
+    --muted-soft: #f1efe9;
+    --crypto: #7a4fb5;
+    --crypto-soft: #f1ebfa;
+    --crypto-soft-line: #ddccf0;
+    --shadow: 0 1px 2px rgba(28,36,32,0.04), 0 8px 24px -12px rgba(28,36,32,0.12);
+    --radius: 18px;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Noto Sans JP", "Hiragino Sans", sans-serif;
+    padding: 16px 16px 40px;
+    display: flex;
+    justify-content: center;
+  }
+  main { width: 100%; max-width: 480px; }
+
+  .topnav { margin-bottom: 14px; }
+  .topnav a {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    text-decoration: none;
+    font-weight: 700;
+  }
+  .topnav a:hover { color: var(--accent); }
+
+  .eyebrow {
+    font-family: "Zen Kaku Gothic New", sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    margin: 0 0 6px;
+  }
+  h1 {
+    font-family: "Zen Kaku Gothic New", sans-serif;
+    font-weight: 900;
+    font-size: 24px;
+    line-height: 1.35;
+    letter-spacing: -0.01em;
+    margin: 0 0 10px;
+  }
+  .lede { color: var(--ink-soft); font-size: 14px; line-height: 1.7; margin: 0 0 16px; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  /* おすすめnote誘導カード */
+  .note-callout {
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-soft-line);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    margin-bottom: 20px;
+  }
+  .note-callout .lbl {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: "Zen Kaku Gothic New", sans-serif; font-weight: 700; font-size: 11.5px;
+    color: var(--accent); letter-spacing: 0.03em; margin-bottom: 6px;
+  }
+  .note-callout p { margin: 0 0 10px; font-size: 13px; color: var(--ink); line-height: 1.6; }
+  .note-callout a.btn {
+    display: inline-block; font-family: "Zen Kaku Gothic New", sans-serif; font-weight: 700;
+    font-size: 13px; color: #fff; background: var(--accent); padding: 9px 16px;
+    border-radius: 999px; text-decoration: none;
+  }
+
+  /* クイックジャンプ */
+  .jump { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 24px; }
+  .jump a {
+    font-size: 12px; font-weight: 700; color: var(--ink-soft); text-decoration: none;
+    background: var(--muted-soft); border: 1px solid var(--line); padding: 6px 12px; border-radius: 999px;
+  }
+  .jump a:hover { color: var(--accent); border-color: var(--accent-soft-line); background: var(--accent-soft); }
+
+  section { scroll-margin-top: 12px; margin-bottom: 30px; }
+  section:last-of-type { margin-bottom: 8px; }
+  .section-head { margin-bottom: 12px; }
+  .section-title {
+    font-family: "Zen Kaku Gothic New", sans-serif; font-weight: 900; font-size: 16.5px;
+    display: flex; align-items: center; gap: 8px; margin: 0 0 6px;
+  }
+  .section-intro { font-size: 12.5px; color: var(--ink-soft); line-height: 1.7; margin: 0; }
+
+  .disclaimer {
+    font-size: 12px; line-height: 1.7; color: var(--ink-soft);
+    background: var(--crypto-soft); border: 1px dashed var(--crypto-soft-line);
+    border-radius: 12px; padding: 12px 14px; margin: 10px 0 14px;
+  }
+  .disclaimer b { color: var(--ink); }
+
+  .item {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 16px 16px 14px; margin-bottom: 12px; box-shadow: var(--shadow);
+  }
+  .item:last-child { margin-bottom: 0; }
+  .item-name {
+    font-family: "Zen Kaku Gothic New", sans-serif; font-weight: 900; font-size: 15.5px;
+    margin: 0 0 8px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  }
+  .tag {
+    font-size: 10.5px; font-weight: 700; color: var(--ink-soft); background: var(--muted-soft);
+    border: 1px solid var(--line); padding: 2px 8px; border-radius: 999px;
+  }
+  .field-row { font-size: 13px; line-height: 1.7; margin-bottom: 4px; display: flex; gap: 6px; }
+  .field-row .k { color: var(--ink-soft); flex-shrink: 0; font-weight: 700; }
+  .field-row .v { color: var(--ink); }
+  .field-row .v.pending { color: var(--ink-soft); font-style: normal; }
+
+  .code-line { display: flex; align-items: center; gap: 8px; margin: 8px 0 10px; flex-wrap: wrap; }
+  .code-chip {
+    font-family: "Zen Kaku Gothic New", sans-serif; font-weight: 700; font-size: 14px;
+    letter-spacing: 0.02em; background: var(--paper); border: 1.5px dashed var(--line);
+    border-radius: 10px; padding: 6px 12px; color: var(--ink);
+  }
+  .copy-btn {
+    font-family: "Noto Sans JP", sans-serif; font-size: 11.5px; font-weight: 700;
+    color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent-soft-line);
+    border-radius: 999px; padding: 6px 12px; cursor: pointer;
+  }
+  .copy-btn.copied { color: var(--good); background: var(--good-soft); border-color: var(--good); }
+
+  .btn-url {
+    display: inline-block; width: 100%; text-align: center; box-sizing: border-box;
+    font-family: "Zen Kaku Gothic New", sans-serif; font-weight: 700; font-size: 13.5px;
+    color: #fff; background: var(--ink); padding: 10px 14px; border-radius: 10px;
+    text-decoration: none; margin-top: 4px;
+  }
+  .btn-url.crypto { background: var(--crypto); }
+  .btn-url.disabled { background: var(--muted-soft); color: var(--ink-soft); pointer-events: none; }
+
+  .warn-box {
+    font-size: 11.5px; line-height: 1.7; color: var(--warn);
+    background: var(--warn-soft); border: 1px solid #f0c9a8;
+    border-radius: 10px; padding: 10px 12px; margin: 10px 0 4px;
+  }
+  .warn-box b { font-weight: 700; }
+
+  .siblings-note {
+    font-size: 12px; color: var(--ink-soft); line-height: 1.6; margin: -4px 0 12px;
+  }
+
+  .request-callout {
+    background: var(--card); border: 1px dashed var(--accent-soft-line); border-radius: var(--radius);
+    padding: 18px; text-align: center; margin-top: 6px;
+  }
+  .request-callout .ttl { font-family: "Zen Kaku Gothic New", sans-serif; font-weight: 900; font-size: 15px; margin: 0 0 8px; }
+  .request-callout p { font-size: 12.5px; color: var(--ink-soft); line-height: 1.7; margin: 0; }
+
+  footer { text-align: center; font-size: 12px; color: var(--ink-soft); margin-top: 22px; line-height: 1.7; }
+  footer .brand { font-weight: 700; color: var(--ink); }
+</style>
+</head>
+<body>
+<main>
+  <div class="topnav"><a href="./index.html">← 資金作成・進捗管理ツールに戻る</a></div>
+  <p class="eyebrow">カプおじの資金作成ツール</p>
+  <h1>アプリ・サイト厳選リスト<br>コード一覧</h1>
+  <p class="lede">ここは招待コード・紹介URLをまとめた一覧ページです。「まずどれを使えばいいか」のおすすめは note の記事で紹介しています。読んで物足りなければ、このページから追加でお得に始められます。</p>
+
+  <div class="note-callout">
+    <div class="lbl">📝 まずはこちら</div>
+    <p>厳選したおすすめ・使い方の順番は note の記事にまとめています。迷ったらまずこちらを読んでください。</p>
+    <a class="btn" href="https://note.com/carp_mister/n/n571f0dc3eb35" target="_blank" rel="noopener">おすすめ記事を読む →</a>
+  </div>
+
+  <nav class="jump">
+    <a href="#sites">ポイ活サイト</a>
+    <a href="#sampling">試供品・モニターサイト</a>
+    <a href="#bank">銀行口座</a>
+    <a href="#exchange">暗号資産取引所</a>
+    <a href="#walk-crypto">歩いて貯まる暗号資産</a>
+    <a href="#save-crypto">貯める系暗号資産</a>
+  </nav>
+
+  <!-- 1. ポイ活サイト -->
+  <section id="sites">
+    <div class="section-head">
+      <p class="section-title">💰 ポイ活サイト（追加の選択肢）</p>
+      <p class="section-intro">メインで使うポイ活サイトは、note のおすすめ記事で紹介したモッピー・アメフリで十分です。同じ案件でもサイトによって還元額が違うことがあるので、比較して使いたい人向けの追加の選択肢です。</p>
+    </div>
+
+    <div class="item">
+      <p class="item-name">ハピタス</p>
+      <div class="field-row"><span class="k">特徴：</span><span class="v">国内最大級のポイントサイト。案件数が多く、比較用の2つ目・3つ目として使いやすい。</span></div>
+      <div class="field-row"><span class="k">特典：</span><span class="v">案件ごとに成果ポイントを獲得</span></div>
+      <div class="code-line"><span class="k field-row" style="margin:0;">紹介コード：</span><span class="code-chip">XCMLIS</span><button class="copy-btn" onclick="copyCode(this,'XCMLIS')">コピー</button></div>
+      <a class="btn-url" href="https://hapitas.jp/appinvite?i=20187198&amp;route=pcText" target="_blank" rel="noopener">登録ページを開く →</a>
+    </div>
+
+    <div class="item">
+      <p class="item-name">ワラウ</p>
+      <div class="field-row"><span class="k">特徴：</span><span class="v">国内ポイントサイト。案件によってはモッピー・ハピタスより還元率が高いこともある。</span></div>
+      <div class="field-row"><span class="k">特典：</span><span class="v">案件ごとに成果ポイントを獲得</span></div>
+      <div class="code-line"><span class="k field-row" style="margin:0;">紹介コード：</span><span class="code-chip">6eyA</span><button class="copy-btn" onclick="copyCode(this,'6eyA')">コピー</button></div>
+      <a class="btn-url" href="https://www.warau.jp/friend/reg/658o" target="_blank" rel="noopener">登録ページを開く →</a>
+    </div>
+
+    <div class="item">
+      <p class="item-name">gendama（げん玉）</p>
+      <div class="field-row"><span class="k">特徴：</span><span class="v">国内ポイントサイト。ゲーム感覚で貯められるコンテンツも充実。</span></div>
+      <div class="field-row"><span class="k">特典：</span><span class="v">案件ごとに成果ポイントを獲得</span></div>
+      <div class="code-line"><span class="k field-row" style="margin:0;">紹介コード：</span><span class="code-chip">En0EMw9G</span><button class="copy-btn" onclick="copyCode(this,'En0EMw9G')">コピー</button></div>
+      <a class="btn-url" href="https://www.gendama.jp/invite/?frid=6012100&amp;ref=90000-url" target="_blank" rel="noopener">登録ページを開く →</a>
+    </div>
+  </section>
+
+  <!-- 2. 試供品・モニターサイト -->
+  <section id="sampling">
+    <div class="section-head">
+      <p class="section-title">🎁 試供品・モニターサイト</p>
+      <p class="section-intro">応募して当選すると、無料の試供品やサービスを試せるサイトです。歩数系のポイ活アプリとは別のジャンルです。</p>
+    </div>
+
+    <div class="item">
+      <p class="item-name">キャラフル（旧：カラキャス） <span class="tag">招待キャンペーン休止中</span></p>
+      <div class="field-row"><span class="k">特徴：</span><span class="v">試供品・サービスを提供してもらえる応募型のモニターサイト。</span></div>
+      <div class="field-row"><span class="k">特典：</span><span class="v pending">友達招待キャンペーンは現在休止中。次回開催時にコード入力で特典対象になります</span></div>
+      <div class="code-line"><span class="k field-row" style="margin:0;">紹介コード：</span><span class="code-chip">gh883f1wts</span><button class="copy-btn" onclick="copyCode(this,'gh883f1wts')">コピー</button></div>
+      <a class="btn-url" href="https://charaful.com/j?filter=all&amp;sort=recommended&amp;web=" target="_blank" rel="noopener">サイトを見る →</a>
+    </div>
+  </section>
+
+  <!-- 3. 銀行口座開設 -->
+  <section id="bank">
+    <div class="section-head">
+      <p class="section-title">🏦 銀行口座開設</p>
+      <p class="section-intro">口座を開設するだけで完結する、手間の少ない資金作成の入り口です。</p>
+    </div>
+
+    <div class="item">
+      <p class="item-name">みんなの銀行</p>
+      <div class="field-row"><span class="k">特徴：</span><span class="v">スマホで手続きが完結するネット銀行。</span></div>
+      <div class="field-row"><span class="k">特典：</span><span class="v">口座開設で500円プレゼント</span></div>
+      <div class="code-line"><span class="k field-row" style="margin:0;">紹介コード：</span><span class="code-chip">wQVTHkPf</span><button class="copy-btn" onclick="copyCode(this,'wQVTHkPf')">コピー</button></div>
+      <a class="btn-url" href="https://minna-no-ginko.go.link/f1Lxf" target="_blank" rel="noopener">アプリをダウンロードして開設 →</a>
+    </div>
+  </section>
+
+  <!-- 4. 暗号資産取引所 -->
+  <section id="exchange">
+    <div class="section-head">
+      <p class="section-title">🪙 暗号資産取引所（口座開設ボーナス）</p>
+      <p class="section-intro">口座を開設するだけでもらえる、暗号資産（仮想通貨）取引所のボーナスです。</p>
+    </div>
+
+    <div class="disclaimer">ここから先は暗号資産（仮想通貨）を扱うサービスです。<b>投資としてではなく</b>、「口座を作るだけ」「歩くだけ」でもらえるポイ活の一環として紹介しています。価格が変動する資産なので、実際に売買・保有する場合はご自身の判断・情報収集のうえで行ってください。</div>
+
+    <div class="item">
+      <p class="item-name">コインチェック</p>
+      <div class="field-row"><span class="k">特徴：</span><span class="v">国内最大級の暗号資産交換業者。</span></div>
+      <div class="field-row"><span class="k">特典：</span><span class="v">1,500円相当のビットコインをプレゼント</span></div>
+      <div class="field-row"><span class="k">紹介コード：</span><span class="v">なし（下のURLに埋め込み済み）</span></div>
+      <a class="btn-url crypto" href="https://campaign.coincheck.com/invitation?code=slgcIpg" target="_blank" rel="noopener">口座開設ページを開く →</a>
+      <div class="warn-box"><b>注意：</b>この紹介URL以外から登録した場合や、URLを開いた後に別のページへ移動した場合、特典が無効になります。登録が完了するまで、他のリンクは開かずに進めてください。</div>
+    </div>
+
+    <div class="item">
+      <p class="item-name">bitFlyer</p>
+      <div class="field-row"><span class="k">特徴：</span><span class="v">国内最大級の暗号資産交換業者のひとつ。</span></div>
+      <div class="field-row"><span class="k">特典：</span><span class="v">1,500円分のビットコインをプレゼント</span></div>
+      <div class="code-line"><span class="k field-row" style="margin:0;">紹介コード：</span><span class="code-chip">dcx5vasn</span><button class="copy-btn" onclick="copyCode(this,'dcx5vasn')">コピー</button></div>
+      <a class="btn-url crypto" href="https://bitflyer.com/invitation?id=dcx5vasn&amp;lang=ja-JP" target="_blank" rel="noopener">口座開設ページを開く →</a>
+    </div>
+
+    <div class="item">
+      <p class="item-name">SBI VC Trade <span class="tag">詳細確認中</span></p>
+      <div class="field-row"><span class="k">特徴：</span><span class="v">SBIグループの暗号資産交換業者。</span></div>
+      <div class="field-row"><span class="k">特典：</span><span class="v pending">確認中</span></div>
+      <div class="code-line"><span class="k field-row" style="margin:0;">紹介コード：</span><span class="code-chip">g6mn4</span><button class="copy-btn" onclick="copyCode(this,'g6mn4')">コピー</button></div>
+      <a class="btn-url disabled" href="#">登録URLは確認中（コードは口座開設時に入力）</a>
+    </div>
+  </section>
+
+  <!-- 5. 歩いて貯まる暗号資産アプリ -->
+  <section id="walk-crypto">
+    <div class="section-head">
+      <p class="section-title">👟 歩いて貯まる暗号資産アプリ</p>
+      <p class="section-intro">歩数に応じて、少額の暗号資産が貯まるアプリです。</p>
+    </div>
+
+    <div class="disclaimer">こちらも<b>投資としてではなく</b>、歩くだけでもらえるポイ活の一環として紹介しています。</div>
+
+    <div class="item">
+      <p class="item-name">AHEALTH（エーヘルス、旧マネーウォーク）</p>
+      <div class="field-row"><span class="k">特徴：</span><span class="v">歩数に応じて暗号資産が貯まるアプリ。</span></div>
+      <div class="field-row"><span class="k">特典：</span><span class="v">招待コード入力で特典を獲得</span></div>
+      <div class="code-line"><span class="k field-row" style="margin:0;">紹介コード：</span><span class="code-chip">XNJRTY</span><button class="copy-btn" onclick="copyCode(this,'XNJRTY')">コピー</button></div>
+      <a class="btn-url crypto" href="https://play.google.com/store/apps/details?id=com.tracerofficial&amp;hl=ja" target="_blank" rel="noopener">Androidでダウンロード →</a>
+      <a class="btn-url crypto" style="margin-top:8px;" href="https://apps.apple.com/jp/app/ahealth-エーヘルス-旧マネーウォーク/id1638253339" target="_blank" rel="noopener">iPhoneでダウンロード →</a>
+    </div>
+
+    <div class="item">
+      <p class="item-name">aruco（アルコ）</p>
+      <div class="field-row"><span class="k">特徴：</span><span class="v">歩いて暗号資産のドロップが貯まるアプリ。</span></div>
+      <div class="field-row"><span class="k">特典：</span><span class="v">初回起動時に招待コード入力で100ドロップ獲得</span></div>
+      <div class="code-line"><span class="k field-row" style="margin:0;">紹介コード：</span><span class="code-chip">UHTBCD8RL4</span><button class="copy-btn" onclick="copyCode(this,'UHTBCD8RL4')">コピー</button></div>
+      <a class="btn-url crypto" href="https://aruco.app/ja/download" target="_blank" rel="noopener">アプリをダウンロード →</a>
+    </div>
+
+    <div class="item">
+      <p class="item-name">WalkCoin（アルコイン）</p>
+      <div class="field-row"><span class="k">特徴：</span><span class="v">歩数やガチャでポイントが貯まり、ドットギフト等に交換できる（arucoとは別会社の別アプリ）。</span></div>
+      <div class="field-row"><span class="k">特典：</span><span class="v">招待コード入力でコインを獲得</span></div>
+      <div class="code-line"><span class="k field-row" style="margin:0;">紹介コード：</span><span class="code-chip">rDvgq2nj</span><button class="copy-btn" onclick="copyCode(this,'rDvgq2nj')">コピー</button></div>
+      <a class="btn-url crypto" href="https://bit.ly/3Kq1mic" target="_blank" rel="noopener">アプリをダウンロード →</a>
+    </div>
+
+    <p class="siblings-note">以下の3つは同じ運営による兄弟アプリです。仕組みは共通で、貯めたいコインの種類だけが違います。</p>
+
+    <div class="item">
+      <p class="item-name">BitWalk</p>
+      <div class="field-row"><span class="k">特徴：</span><span class="v">歩いてビットコイン（BTC）が貯まる。</span></div>
+      <div class="field-row"><span class="k">特典：</span><span class="v">招待URLからのダウンロードで報酬2倍</span></div>
+      <div class="field-row"><span class="k">紹介コード：</span><span class="v">なし（下のURLに埋め込み済み）</span></div>
+      <a class="btn-url crypto" href="https://bitwalk.go.link/?adj_t=1kewl8oe&amp;referrer_id=eaeb4ac8-1f8d-4d23-b305-39b69c75a7b0" target="_blank" rel="noopener">アプリをダウンロード →</a>
+    </div>
+
+    <div class="item">
+      <p class="item-name">XRPWalk</p>
+      <div class="field-row"><span class="k">特徴：</span><span class="v">歩いてリップル（XRP）が貯まる。</span></div>
+      <div class="field-row"><span class="k">特典：</span><span class="v">招待URLからのダウンロードで報酬2倍</span></div>
+      <div class="field-row"><span class="k">紹介コード：</span><span class="v">なし（下のURLに埋め込み済み）</span></div>
+      <a class="btn-url crypto" href="https://xrpwalk.go.link/?adj_t=1lrv1tvw&amp;referrer_id=e6cefda1-dafa-4e5c-8675-3e8b4397aa59" target="_blank" rel="noopener">アプリをダウンロード →</a>
+    </div>
+
+    <div class="item">
+      <p class="item-name">DOGEWalk</p>
+      <div class="field-row"><span class="k">特徴：</span><span class="v">歩いてドージコイン（DOGE）が貯まる。</span></div>
+      <div class="field-row"><span class="k">特典：</span><span class="v">招待URLからのダウンロードで報酬2倍</span></div>
+      <div class="field-row"><span class="k">紹介コード：</span><span class="v">なし（下のURLに埋め込み済み）</span></div>
+      <a class="btn-url crypto" href="https://dogewalk.go.link/?adj_t=1lhvtx58&amp;referrer_id=ab8ab980-3aa5-4f3f-b3e0-5a5e264b06e6" target="_blank" rel="noopener">アプリをダウンロード →</a>
+    </div>
+  </section>
+
+  <!-- 6. 貯める系暗号資産アプリ -->
+  <section id="save-crypto">
+    <div class="section-head">
+      <p class="section-title">🎰 貯める系暗号資産アプリ</p>
+      <p class="section-intro">歩数連動ではなく、ガチャ・動画視聴・価格予想などで貯まるタイプです。</p>
+    </div>
+
+    <div class="item">
+      <p class="item-name">ビットスタート（BitStart、旧ビットストック）</p>
+      <div class="field-row"><span class="k">特徴：</span><span class="v">ガチャ・動画視聴・価格予想でビットコインが貯まるアプリ（歩数連動ではありません）。</span></div>
+      <div class="field-row"><span class="k">特典：</span><span class="v">100円相当のビットコインをプレゼント</span></div>
+      <div class="code-line"><span class="k field-row" style="margin:0;">紹介コード：</span><span class="code-chip">wyFNzB</span><button class="copy-btn" onclick="copyCode(this,'wyFNzB')">コピー</button></div>
+      <a class="btn-url crypto" href="https://bitstart.jp" target="_blank" rel="noopener">アプリをダウンロード →</a>
+      <div class="warn-box" style="color:var(--ink-soft); background:var(--muted-soft); border-color:var(--line);"><b>価格予想機能について：</b>ゲーム内の遊びの一つであり、投資の助言ではありません。実際の売買・保有の判断はご自身で行ってください。</div>
+    </div>
+  </section>
+
+  <div class="request-callout">
+    <p class="ttl">💬 アプリ紹介、受付中</p>
+    <p>ここにないお得なアプリを知っていたら、カプおじの公式LINEにメッセージで紹介コードを送ってください。1人1件まで、こちらが実際に登録するので、あなたはそのまま紹介特典を受け取れます。教えてもらったアプリは、このページにも追加します。</p>
+  </div>
+
+  <footer>
+    <span class="brand">カプおじ</span> — ノーリスクな資金作成・ポイ活の記録<br>
+    コード・URLは変更になることがあります。うまく反映されない場合はLINEで教えてください。
+  </footer>
+</main>
+
+<script>
+  function copyCode(btn, code) {
+    const orig = btn.textContent;
+    const onDone = () => {
+      btn.textContent = '✓ コピー済み';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 1500);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(code).then(onDone).catch(() => fallbackCopy(code, onDone));
+    } else {
+      fallbackCopy(code, onDone);
+    }
+  }
+  function fallbackCopy(text, cb) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      cb();
+    } catch (e) {
+      console.warn('コピーに失敗しました。手動で選択してコピーしてください。', e);
+    }
+  }
+</script>
+</body>
+</html>
